@@ -1,4 +1,10 @@
-(ns zicl.game)
+(ns zicl.game
+  (:require [clojure.pprint :refer [pprint]]))
 
-(defn GO []
-  (println "Starting game..."))
+(def GAME
+  {:rooms {}
+   :objects {:global {} :shared {}}})
+
+(defn GO [game]
+  (println "Starting game...")
+  (pprint game))
