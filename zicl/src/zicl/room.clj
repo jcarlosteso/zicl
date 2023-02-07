@@ -1,6 +1,9 @@
 (ns zicl.room)
 
-(defn ROOM [game room-key room-name & exits]
-  (-> game
-      (assoc-in [:rooms room-key] {:name room-name})
-      (assoc-in [:rooms room-key :exits] (apply merge exits))))
+(defmacro ROOM [game room-key & properties]
+  `(assoc-in ~game
+             [:rooms ~room-key]
+             (reduce
+              (fn [room# prop-fn#] (prop-fn# room#))
+              {}
+              ~(vec properties))))
