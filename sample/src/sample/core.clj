@@ -2,6 +2,7 @@
   (:require [zicl.common :refer [DESC]]
             [zicl.exit :refer [EAST WEST]]
             [zicl.game :refer [GAME GO]]
+            [zicl.movement :refer [MOVE]]
             [zicl.room :refer [ROOM]]))
 
 (defn -main []
@@ -12,4 +13,5 @@
       (ROOM :kitchen
             (DESC "Kitchen")
             (WEST :living-room))
+      (MOVE :living-room)
       GO))
