@@ -4,11 +4,6 @@
             [zicl.parser :refer [PARSER]]
             [zicl.state :refer [*STATE*]]))
 
-(def GAME
-  {:rooms {}
-   :objects {:global {} :shared {}}
-   :player {:location {}}})
-
 (defn NEXT []
   (pprint @*STATE*)
   (if-let [{:keys [_verb direct]} (PARSER)]
@@ -20,7 +15,6 @@
     (NEXT)
     (recur)))
 
-(defn GO [game]
-  (println "Starting game...")
-  (binding [*STATE* (atom GAME)]
-    (MAIN-LOOP)))
+(defn GO []
+  (println "Starting game...") 
+  (MAIN-LOOP))

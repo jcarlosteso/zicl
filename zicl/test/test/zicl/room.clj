@@ -3,8 +3,12 @@
             [test.helpers :refer [has-key?]]
             [zicl.common :refer [DESC]]
             [zicl.exit :refer [EAST]]
-            [zicl.game :refer [GAME]]
-            [zicl.room :refer [ROOM]]))
+            [zicl.room :refer [ROOM]]
+            [zicl.state :refer [*STATE* INITIAL-STATE]]))
+
+(defmacro with-setup [& fs]
+  `(binding [*STATE* (atom INITIAL-STATE)]
+     ~@fs))
 
 (defmacro has-room? [state room-key]
   `(has-key? (:rooms ~state) ~room-key))
@@ -14,16 +18,19 @@
 
 (deftest test-rooms
   (testing "Creating a room"
-    (let [state (-> GAME (ROOM :test-room))]
-      (is (map? state))
-      (has-room? state :test-room)))
+    (with-setup
+      (ROOM :test-room)
+      (is (map? @*STATE*))
+      (has-room? @*STATE* :test-room)))
   (testing "Creating a room with a description"
-    (let [state (-> GAME (ROOM :with-desc (DESC "Test Room")))]
-      (has-room? state :with-desc)
-      (has-prop? state :with-desc :description)
-      (is (= "Test Room" (get-in state [:rooms :with-desc :description])))))
+    (with-setup
+      (ROOM :with-desc (DESC "Test Room"))
+      (has-room? @*STATE* :with-desc)
+      (has-prop? @*STATE* :with-desc :description)
+      (is (= "Test Room" (get-in @*STATE* [:rooms :with-desc :description])))))
   (testing "Creating a room with an exit"
-    (let [state (-> GAME (ROOM :with-exit (EAST :somewhere-else)))]
-      (has-room? state :with-exit)
-      (has-prop? state :with-exit :exits)
-      (has-key? (get-in state [:rooms :with-exit :exits]) :east))))
+    (with-setup
+      (ROOM :with-exit (EAST :somewhere-else))
+      (has-room? @*STATE* :with-exit)
+      (has-prop? @*STATE* :with-exit :exits)
+      (has-key? (get-in @*STATE* [:rooms :with-exit :exits]) :east))))

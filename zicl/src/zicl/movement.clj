@@ -7,14 +7,18 @@
      (swap! *STATE* assoc-in [:player :location] {~where room#})
      (throw (Exception. (str "Room " ~where " does not exist.")))))
 
-(defmacro HERE [game]
-  `(->> (get-in ~game [:player :location])
+(defmacro HERE []
+  `(->> (get-in @*STATE* [:player :location])
         (into [] cat)
         (zipmap [:key :room])))
 
+(defn has-exit? [room direction]
+  (contains? (:exits room) direction))
+
 (defmacro WALK [direction-str]
-  `(let [room# (:room (HERE @*STATE*))
+  `(let [room# (:room (HERE))
          direction# (-> ~direction-str lower-case keyword)]
-     (if (contains? (:exits room#) direction#)
-       (MOVE (get-in room# [:exits direction#]))
-       (println "You can't go that way.\n"))))
+     (cond
+       (nil? room#) (throw (Exception. "The player has not been placed in any room."))
+       (has-exit? room# direction#) (MOVE (get-in room# [:exits direction#]))
+       :else (println "You can't go that way.\n"))))

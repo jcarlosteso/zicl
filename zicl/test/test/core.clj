@@ -6,7 +6,8 @@
             [test.zicl.game]
             [test.zicl.movement]
             [test.zicl.parser]
-            [test.zicl.room]))
+            [test.zicl.room]
+            [test.zicl.state]))
 
 (defn- test-ns? [namespace]
   (-> namespace
