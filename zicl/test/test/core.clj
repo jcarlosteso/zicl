@@ -4,6 +4,7 @@
             [test.zicl.common]
             [test.zicl.exit]
             [test.zicl.game]
+            [test.zicl.globals]
             [test.zicl.movement]
             [test.zicl.parser]
             [test.zicl.room]

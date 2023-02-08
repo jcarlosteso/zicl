@@ -11,4 +11,5 @@
   (has-key? (:objects INITIAL-STATE) :global)
   (has-key? (:objects INITIAL-STATE) :shared)
   (has-key? INITIAL-STATE :player)
-  (has-key? (:player INITIAL-STATE) :location))
+  (has-key? (:player INITIAL-STATE) :location)
+  (has-key? INITIAL-STATE :globals))
