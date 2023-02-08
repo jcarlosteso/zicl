@@ -20,5 +20,5 @@
          direction# (-> ~direction-str lower-case keyword)]
      (cond
        (nil? room#) (throw (Exception. "The player has not been placed in any room."))
-       (has-exit? room# direction#) (MOVE (get-in room# [:exits direction#]))
+       (has-exit? room# direction#) (MOVE (get-in room# [:exits direction# :to]))
        :else (println "You can't go that way.\n"))))
