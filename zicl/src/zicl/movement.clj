@@ -1,9 +1,10 @@
 (ns zicl.movement
-  (:require [clojure.string :refer [lower-case]]))
+  (:require [clojure.string :refer [lower-case]]
+            [zicl.state :refer [*STATE*]]))
 
-(defmacro MOVE [game where]
-  `(if-let [room# (get-in ~game [:rooms ~where])]
-     (assoc-in ~game [:player :location] {~where room#})
+(defmacro MOVE [where]
+  `(if-let [room# (get-in @*STATE* [:rooms ~where])]
+     (swap! *STATE* assoc-in [:player :location] {~where room#})
      (throw (Exception. (str "Room " ~where " does not exist.")))))
 
 (defmacro HERE [game]
@@ -11,11 +12,9 @@
         (into [] cat)
         (zipmap [:key :room])))
 
-(defmacro WALK [game direction-str]
-  `(let [room# (-> ~game HERE :room)
+(defmacro WALK [direction-str]
+  `(let [room# (:room (HERE @*STATE*))
          direction# (-> ~direction-str lower-case keyword)]
      (if (contains? (:exits room#) direction#)
-       (MOVE ~game (get-in room# [:exits direction#]))
-       (do
-         (println "You can't go that way.\n")
-         ~game))))
+       (MOVE (get-in room# [:exits direction#]))
+       (println "You can't go that way.\n"))))
