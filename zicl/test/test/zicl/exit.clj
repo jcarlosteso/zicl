@@ -1,7 +1,7 @@
 (ns test.zicl.exit
   (:require [clojure.test :refer [are deftest function? is testing]]
             [test.helpers :refer [has-key? have-key?]]
-            [zicl.exit :refer [DOWN EAST ELSE IF IS NORTH OPEN SORRY SOUTH TO UP WEST]]))
+            [zicl.exit :refer [DOWN EAST ELSE IF IS NORTH OPEN OUT PER SORRY SOUTH TO UP WEST]]))
 
 (def ^:private nexit-message "There's a reason why you can't go that way.")
 
@@ -11,6 +11,7 @@
 (def explicit-nexit (SOUTH SORRY nexit-message))
 (def cexit (UP TO :somewhere IF :condition ELSE nexit-message))
 (def dexit (DOWN TO :somewhere IF :door IS OPEN ELSE nexit-message))
+(def fexit (OUT PER :random-teleport))
 
 (deftest test-exit-definitions
   (testing "Exits are prop functions"
@@ -59,3 +60,10 @@
     (is (= :door (:shared exit)))
     (is (= :somewhere (:to exit)))
     (is (= nexit-message (:sorry exit)))))
+
+(deftest test-flexible-exits
+  (let [room (fexit {})
+        exit (get-in room  [:exits :out])]
+    (has-key? (:exits room) :out)
+    (has-key? exit :action)
+    (is (= :random-teleport (:action exit)))))
