@@ -1,32 +1,49 @@
 (ns test.zicl.exit
-  (:require [clojure.test :refer [are deftest function? testing]]
-            [test.helpers :refer [have-key?]]
-            [zicl.exit :refer [EAST NORTH SORRY SOUTH TO WEST]]))
+  (:require [clojure.test :refer [are deftest function? is testing]]
+            [test.helpers :refer [has-key? have-key?]]
+            [zicl.exit :refer [EAST ELSE IF NORTH SORRY SOUTH TO UP WEST]]))
 
 (def ^:private nexit-message "There's a reason why you can't go that way.")
 
-(deftest test-exit
-  (let [east-uexit (EAST :somewhere)
-        west-uexit (WEST TO :somewhere)
-        north-nexit (NORTH nexit-message)
-        south-nexit (SOUTH SORRY nexit-message)]
-    (testing "Exits are prop functions"
-      (are [exit] (function? exit)
-        east-uexit
-        west-uexit
-        north-nexit
-        south-nexit))
-    (testing "Add an :exits key to the room"
-      (have-key? :exits
-                 (east-uexit {})
-                 (west-uexit {})
-                 (north-nexit {})
-                 (south-nexit {})))
-    (testing "Unconditional exits"
-      (are [exit key] (= {:to :somewhere} (get-in exit [:exits key]))
-        (east-uexit {}) :east
-        (west-uexit {}) :west))
-    (testing "Non-exits"
-      (are [exit key] (= {:sorry nexit-message} (get-in exit [:exits key]))
-        (north-nexit {}) :north
-        (south-nexit {}) :south))))
+(def implicit-uexit (EAST :somewhere))
+(def explicit-uexit (WEST TO :somewhere))
+(def implicit-nexit (NORTH nexit-message))
+(def explicit-nexit (SOUTH SORRY nexit-message))
+(def cexit (UP TO :somewhere IF :condition ELSE nexit-message))
+
+(deftest test-exit-definitions
+  (testing "Exits are prop functions"
+    (are [exit] (function? exit)
+      implicit-uexit
+      explicit-uexit
+      implicit-nexit
+      explicit-nexit
+      cexit))
+  (testing "Exit definitions add an :exits key to the room"
+    (have-key? :exits
+               (implicit-uexit {})
+               (explicit-uexit {})
+               (implicit-nexit {})
+               (explicit-nexit {})
+               (cexit {}))))
+
+(deftest test-unconditional-exits
+  (are [exit key] (= {:to :somewhere} (get-in exit [:exits key]))
+    (implicit-uexit {}) :east
+    (explicit-uexit {}) :west))
+
+(deftest test-non-exits
+  (are [exit key] (= {:sorry nexit-message} (get-in exit [:exits key]))
+    (implicit-nexit {}) :north
+    (explicit-nexit {}) :south))
+
+(deftest test-conditional-exits
+  (let [room (cexit {})
+        exit (get-in room [:exits :up])]
+    (has-key? (:exits room) :up)
+    (has-key? exit :global)
+    (has-key? exit :to)
+    (has-key? exit :sorry)
+    (is (= :condition (:global exit)))
+    (is (= :somewhere (:to exit)))
+    (is (= nexit-message (:sorry exit)))))
