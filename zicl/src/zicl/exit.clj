@@ -1,76 +1,67 @@
 (ns zicl.exit)
 
-(defn TO
-  ([room-key] {:to room-key})
-  ([room-key condition] (merge {:to room-key} (apply hash-map condition))))
-(defn SORRY [message] {:sorry message})
-
+(def TO :to)
+(def SORRY :sorry)
 (def IF :global)
 (def ELSE :sorry)
+(def IS :is)
+(def OPEN :open)
+(def PER :per)
 
-(defmacro EXIT [direction-key exit-spec]
+(def TO? (partial = TO))
+(def SORRY? (partial = SORRY))
+(def IF? (partial = IF))
+(def ELSE? (partial = ELSE))
+(def IS? (partial = IS))
+(def OPEN? (partial = OPEN))
+(def PER? (partial = PER))
+
+(def UEXIT-IMPLICIT [keyword?])
+(def UEXIT-EXPLICIT [TO? keyword?])
+(def NEXIT-IMPLICIT [string?])
+(def NEXIT-EXPLICIT [SORRY? string?])
+(def CEXIT          [TO? keyword? IF? keyword? ELSE? string?])
+(def DEXIT          [TO? keyword? IF? keyword? IS? OPEN? ELSE? string?])
+(def FEXIT          [PER? keyword?])
+
+(defmacro matches? [syntax clauses]
+  `(and
+    (= (count ~syntax) (count ~clauses))
+    (every? (fn [[f# token#]] (f# token#))
+            (map vector ~syntax ~clauses))))
+
+(defmacro EXIT-SPEC [& clauses]
+  `(let [clauses# ~(vec clauses)]
+     (cond
+       (matches? UEXIT-IMPLICIT clauses#) {:to (first clauses#)}
+       (matches? NEXIT-IMPLICIT clauses#) {:sorry (first clauses#)}
+       (matches? UEXIT-EXPLICIT clauses#) {:to (last clauses#)}
+       (matches? NEXIT-EXPLICIT clauses#) {:sorry (last clauses#)}
+       (matches? CEXIT          clauses#) {:to (second clauses#)
+                                           :global (get clauses# 3)
+                                           :sorry (last clauses#)}
+       (matches? DEXIT          clauses#) {:to (second clauses#)
+                                           :shared (get clauses# 3)
+                                           :sorry (last clauses#)}
+       (matches? FEXIT          clauses#) {:action (last clauses#)}
+       :else                              nil)))
+
+(defmacro EXIT [direction-key & exit-spec]
   `(fn [room#]
      (update room#
              :exits
              merge
-             (assoc {} ~direction-key ~exit-spec))))
+             (assoc {} ~direction-key (EXIT-SPEC ~@exit-spec)))))
 
-(defmacro NORTH
-  ([arg] `(NORTH (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :north (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro NE
-  ([arg] `(NE (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :north-east (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro EAST
-  ([arg] `(EAST (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :east (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro SE
-  ([arg] `(SE (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :south-east (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro SOUTH
-  ([arg] `(SOUTH (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :south (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro SW
-  ([arg] `(SW (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :soutw-west (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro WEST
-  ([arg] `(WEST (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :west (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro NW
-  ([arg] `(NW (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :north-west (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro UP
-  ([arg] `(UP (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :up (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro DOWN
-  ([arg] `(DOWN (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :down (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro IN
-  ([arg] `(IN (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :in (~exit-fn ~room-key ~(vec args)))))
-
-(defmacro OUT
-  ([arg] `(OUT (if (keyword? ~arg) TO SORRY) ~arg))
-  ([exit-fn arg] `(~exit-fn ~arg))
-  ([exit-fn room-key & args] `(EXIT :out (~exit-fn ~room-key ~(vec args)))))
+(defmacro NORTH [& args] `(EXIT :north ~@args))
+(defmacro NE [& args] `(EXIT :north-east ~@args))
+(defmacro EAST [& args] `(EXIT :east ~@args))
+(defmacro SE [& args] `(EXIT :south-east ~@args))
+(defmacro SOUTH [& args] `(EXIT :south ~@args))
+(defmacro SW [& args] `(EXIT :soutw-west ~@args))
+(defmacro WEST [& args] `(EXIT :west ~@args))
+(defmacro NW [& args] `(EXIT :north-west ~@args))
+(defmacro UP [& args] `(EXIT :up ~@args))
+(defmacro DOWN [& args] `(EXIT :down ~@args))
+(defmacro IN [& args] `(EXIT :in ~@args))
+(defmacro OUT [& args] `(EXIT :out ~@args))
