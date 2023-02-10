@@ -1,7 +1,7 @@
 (ns test.zicl.exit
   (:require [clojure.test :refer [are deftest function? is testing]]
             [test.helpers :refer [has-key? have-key?]]
-            [zicl.exit :refer [DOWN EAST ELSE IF IS NORTH OPEN OUT PER SORRY SOUTH TO UP WEST]]))
+            [zicl.exit :refer [DOWN EAST ELSE EXIT-SPEC IF IS NORTH OPEN OUT PER SORRY SOUTH TO UP WEST]]))
 
 (def ^:private nexit-message "There's a reason why you can't go that way.")
 
@@ -67,3 +67,10 @@
     (has-key? (:exits room) :out)
     (has-key? exit :action)
     (is (= :random-teleport (:action exit)))))
+
+(deftest test-invalid-exits
+  (are [spec] (nil? spec)
+    (EXIT-SPEC 3)
+    (EXIT-SPEC TO IF :whatever)
+    (EXIT-SPEC PER :aspera TO :astra)
+    (EXIT-SPEC TO TO IF IF ELSE "else")))
