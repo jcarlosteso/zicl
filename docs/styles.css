@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Dosis&display=swap');
+
+* {
+  font-family: 'Dosis', sans-serif;
+}
+
+html {
+  width: 60vw;
+  margin: auto;
+  font-size: 24px;
+}
+
+body {
+  border: 1px solid lightslategray;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+a[target="_blank"] {
+  background: url(img/newtab.png) no-repeat right center / 20px auto;
+  padding-right: 24px;
+}
+
+h1 {
+  border-bottom: 2px solid black;
+}
+
+h2 {
+  border-bottom: 1px solid black;
+}
