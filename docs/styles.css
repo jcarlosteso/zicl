@@ -8,7 +8,7 @@
 }
 
 section {
-  padding: 1rem 2rem 0;
+  padding: 1rem 2rem;
   font-family: 'Arapey', serif;
   display: grid;
   grid-template-columns: 20% 50% 30%;
