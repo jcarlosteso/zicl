@@ -165,7 +165,7 @@ article#intro > small > a::after {
 
 
 a[target="_blank"] {
-  background: url(/img/newtab.png) no-repeat right center / 16px auto;
+  background: url(img/newtab.png) no-repeat right center / 16px auto;
   padding-right: 20px;
 }
 
