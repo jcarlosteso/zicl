@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Overview</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>The adven<em>j</em>urer reloaded</h1>
+  </header>
+
+  <section>
+    <aside>
+      <img src="../img/cropped-advenjurer-1.png" />
+      <h3>Contents</h3>
+      <a href="../index.html">Introduction</a>
+      <a href="./before_we_start.html">Before we start</a>
+      <p>Zork code structure</p>
+    </aside>
+    <article>
+      <small><a href="./before_we_start.html">Before we start</a></small>
+
+      <h1>Zork code structure</h1>
+
+      <p>The original Zork &mdash;written in MDL and ran on a PDP-10&mdash; was a single game, but that was too big for
+        personal computers, so it had to be split into three titles.</p>
+
+      <p>Each of the three titles Zork was split into had 10 <code>.zil</code> files that can be grouped in:</p>
+      <ul>
+        <li>A <em>loader</em> file, typically named <code>zork<em>&lt;n&gt;</em>.zil</code></li>
+        <li>Seven <em>generic code</em> files, named as <code>g<em>&lt;module&gt;</em>.zil</code></li>
+        <li>Two <em>specific code</em> files, named as <code><em>&lt;n&gt;&lt;module&gt;</em>.zil</code></li>
+      </ul>
+
+      <p>where <code><em>n</em></code> is the number of the title, and <code><em>module</em></code> is the role the code
+        of a particular file plays in the game.</p>
+
+      <p>Let see what each of these <code>.zil</code> files was for.</p>
+
+      <h2>The loader</h2>
+
+      <p>This file has two tasks: set a default value for some <em>properties</em> and load the rest of the
+        <code>.zil</code> files. It doesn&rsquo;t start the game, though; for that, we need to run the
+        <code>GO</code> routine, included in a different file.
+      </p>
+
+      <h2>The generic files</h2>
+
+      <p>These seven files are carried from one Zork instalment to the next, with little changes, if any.</p>
+
+      <h3>gmain.zil</h3>
+
+      <p>This file does not change from one instalment of Zork to the next. It contains:</p>
+
+      <ul>
+        <li>The main game loop,</li>
+        <li>the <code>PERFORM</code> routine, which executes a valid action requested by the player,</li>
+        <li>several <code>CONSTANT</code>s and a couple <code>GLOBAL</code> objects, and</li>
+        <li>a function and a <code>ROUTINE</code> that appear to be used only for debugging.</li>
+      </ul>
+
+      <p>Apparently, here is where <code>GO</code> was defined, too, because there&rsquo;s a comment indicating it was
+        moved to the <code>special.zil</code> file. There's no such file, though, and <code>GO</code> actually is in the
+        game-specific actions file, along with a comment that instructs programmers to keep it there &mdash;but
+        doesn&rsquo;t say why.</p>
+
+      <h3>gparser.zil</h3>
+
+      <p>As its name indicates, this file contains all the logic related to parsing the player&rsquo;s input, including
+        syntax checking.</p>
+
+      <p><a href="https://en.wikipedia.org/wiki/Marc_Blank" target="_blank" referrerpolicy="no-referrer">Marc Blank</a>
+        said called the parser <em>&ldquo;the most incomprehensible piece of code&rdquo;</em> in their system, but its
+        function is quite simple: take the player&rsquo;s input, process it, and return up to three things: an action
+        &mdash;also called a <em>verb</em>&mdash;, a direct object, and an indirect object. Or, if the input is not
+        valid, a message indicating that situation.</p>
+
+      <p>There&rsquo;s a lot going on in this file, to be honest. Like <em>guessing</em> which object an action could be
+        applied to, if the player didn&rsquo;t indicate it. Or, in the previous case, asking the player which object
+        they&rsquo;s referring to, if it cannot be guessed. Or which object is going to actually handle the action
+        &mdash;we&rsquo;ll see more about this, eventually.</p>
+
+      <p>Zork 2 introduced some changes to this file, but they were later commented out.</p>
+
+      <h3>gsyntax.zil</h3>
+
+      <p>As mentioned above, part of the parser&rsquo;s job is to validate the player&rsquo;s input against the allowed
+        syntaxes; these syntaxes are defined in this file.</p>
+
+      <p>Every <code>SYNTAX</code> definition includes what the player&rsquo;s input looks like, and which action
+        &mdash;and, optionally, which <em>pre-action</em>&mdash; should be executed as a result.</p>
+
+      <p>Like with the previous file, Zork 2 introduced several changes in this one, but they were later commented out.
+      </p>
+
+      <h3>gverbs.zil</h3>
+
+      <p>Every player action, or <em>verb</em>, requires a <code>ROUTINE</code> to be executed. This is the file where
+        all of these actions are defined. It also contains <em>pre-actions</em>, which are <code>ROUTINE</code>s that
+        are run <em>before</em> the action takes place, for instance, to check if the action is even possible given the
+        current game status.</p>
+
+      <p>Note that <em>object action handlers</em> are not defined here, but on a game-specific file.</p>
+
+      <p>Apparently, Zork 2 introduced a change in one of the pre-actions, but the code I have for Zork 1 has been
+        already updated. The only proof of the existence of an old version for that <code>ROUTINE</code> is its
+        commented-out code in Zork 2&rsquo;s repository. Other changes were also made, but later commented out.</p>
+
+      <h3>gglobals.zil</h3>
+
+      <p>Games may have objects that can be referenced from everywhere. Like the ground, for example. Or the player. Or
+        <em>parts</em> of the player, like their hands. This file is where all these objects are defined. They are
+        called <em>global</em> because of them being accessible everywhere in the game.
+      </p>
+
+      <p>Not all objects defined in this file are relevant to the gameplay. Some of them act as containers for game
+        specific contents, like <code>ROOMS</code> &mdash;a container for all rooms defined in the game&rsquo;s
+        dungeon&mdash;, <code>GLOBAL-OBJECTS</code> &mdash;a container for every object that can always be
+        accessed&mdash;, or <code>LOCAL-GLOBALS</code> &mdash;a container for all objects accessible from more than one
+        room.</p>
+
+      <h3>gmacros.zil</h3>
+
+      <p>One of the most important features of LIST and its dialects is their <a
+          href="https://en.wikipedia.org/wiki/Homoiconicity" target="_blank"
+          referrerpolicy="no-referrer">homoiconicity</a>, the notion behind the <em>&ldquo;code is data&rdquo;</em> half
+        of the motto. The fact that LIST dialects &mdash;one of which is MDL, and therefore ZIL, as it&rsquo;s an MDL
+        subset&mdash; allow handling code as if it was data gives these languages the capability of defining
+        <em>macros</em>: functions that are run <em>at compile time</em> to generate&hellip; more functions. Or data
+        structures, whatever we need.
+      </p>
+
+      <p>A typical use case for macros is defining a Domain-Specific Language, DSL for short. DSLs are great when you
+        want to use in your code constructs that belong to the problem space, making the code more readable. Other
+        frequent use of macros is avoiding code repetition.</p>
+
+      <p>Since macros produce new code when they are run, it is said they <em>expand</em>: at compile time, the macro
+        call will be replaced by the macro code, using any arguments they may receive, as if we were doing smart
+        copy&paste. More often than not, the resulting code is longer than the macro call, hence the <em>macro
+          expansion</em> expression.</p>
+
+      <p>Every macro the game creators defined are in this file. This is another example of file that changed on Zork 2,
+        but the only added function was later commented out.</p>
+
+      <h3>gclock.zil</h3>
+
+      <p>This file deals with <em>queued events</em>, events triggered by some in-game action but that take place in the
+        future.</p>
+
+      <p>The exposed API is quite simple: a <code>QUEUE</code> routine to enqueue actions, an <code>INT</code> routine
+        to get a queued event so we can <code>DISABLE</code> or <code>ENABLE</code> it, and a <code>CLOCKER</code>
+        routine to keep track of the remaining turns for a queued event to be fired, and triggering events when the time
+        has come.</p>
+
+      <p>This file didn't change from one instalment of Zork to the next.</p>
+
+      <h2>The specific files</h2>
+
+      <p>Only two files per title are game-specific:</p>
+      <ul>
+        <li><code><em>&lt;n&gt;</em>dungeon.zil</code> contains all <code>ROOM</code>s and <code>OBJECT</code>s for the
+          game,
+          and</li>
+        <li><code><em>&lt;n&gt;</em>actions.zil</code> contains the <code>ROUTINE</code>s for the objects&rsquo; actions
+          &mdash;we will learn more about this later.</li>
+      </ul>
+
+      <p><code><em>n</em></code> refers to the game number &mdash;for example, Zork 1 files are
+        <code>1dungeon.zil</code> and <code>1actions.zil</code>.</p>
+
+      <small><a href="./before_we_start.html">Before we start</a></small>
+    </article>
+
+    <aside>
+      <div>
+        <h3>TL;DR</h3>
+        <ul>
+        <li>A <strong>Zork game</strong> is composed of 10 <code>.zil</code> files:</li>
+        <ul>
+          <li>A loader,</li>
+          <li>7 files with common utilities for all games, and</li>
+          <li>2 files with the game definition.</li>
+        </ul>
+        
+        <li><strong>Generic files</strong></li>
+        <ul>
+          <li><code>gmain.zil</code> handles the game loop,</li>
+          <li><code>gparser.zil</code> validates the player&rsquo;s input and determines which action is taken and which objects are involved,</li>
+          <li><code>gsyntax.zil</code> defines which sentences are a valid input,</li>
+          <li><code>gverbs.zil</code> contains all the player&rsquo;s actions handlers,</li>
+          <li><code>gglobals.zil</code> defines all objects that can be referenced from anywhere in the game,</li>
+          <li><code>gmacros.zil</code> contains functions that will be executed at compile-time to generate code, and</li>
+          <li><code>gclock.zil</code> handles delayed (<em>queued</em>) events.</li>
+        </ul>
+
+        <li><strong>Specific files</strong></li>
+        <ul>
+          <li><code><em>n</em>dungeon.zil</code> contains the map of the game and the objects the player can interact with, and</li>
+          <li><code><em>n</em>actions.zil</code> contains all the objects&rsquo; action handlers.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+</body>
+
+</html>
