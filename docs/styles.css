@@ -162,7 +162,13 @@ article#intro > small > a::after {
   content: '\00a0\025B8';
 }
 
-
+p.boxed {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  font-style: italic  ;
+  background-color: silver; 
+  padding: 1rem;
+}
 
 a[target="_blank"] {
   background: url(img/newtab.png) no-repeat right center / 16px auto;

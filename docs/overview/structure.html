@@ -18,9 +18,11 @@
       <a href="../index.html">Introduction</a>
       <a href="./before_we_start.html">Before we start</a>
       <p>Zork code structure</p>
+      <a href="./project.html">Project organization</a>
     </aside>
     <article>
       <small><a href="./before_we_start.html">Before we start</a></small>
+      <small><a href="./project.html">Project organization</a></small>
 
       <h1>Zork code structure</h1>
 
@@ -110,8 +112,8 @@
 
       <h3>gglobals.zil</h3>
 
-      <p>Games may have objects that can be referenced from everywhere. Like the ground, for example. Or the player. Or
-        <em>parts</em> of the player, like their hands. This file is where all these objects are defined. They are
+      <p>Games may have objects that can be referenced from everywhere. The ground, for example. Or the player. Or
+        <em>parts</em> of the player&rsquo;s body, like their hands. This file is where all these objects are defined. They are
         called <em>global</em> because of them being accessible everywhere in the game.
       </p>
 
@@ -171,34 +173,36 @@
         <code>1dungeon.zil</code> and <code>1actions.zil</code>.</p>
 
       <small><a href="./before_we_start.html">Before we start</a></small>
+      <small><a href="./project.html">Project organization</a></small>
     </article>
 
     <aside>
       <div>
         <h3>TL;DR</h3>
         <ul>
-        <li>A <strong>Zork game</strong> is composed of 10 <code>.zil</code> files:</li>
-        <ul>
-          <li>A loader,</li>
-          <li>7 files with common utilities for all games, and</li>
-          <li>2 files with the game definition.</li>
-        </ul>
-        
-        <li><strong>Generic files</strong></li>
-        <ul>
-          <li><code>gmain.zil</code> handles the game loop,</li>
-          <li><code>gparser.zil</code> validates the player&rsquo;s input and determines which action is taken and which objects are involved,</li>
-          <li><code>gsyntax.zil</code> defines which sentences are a valid input,</li>
-          <li><code>gverbs.zil</code> contains all the player&rsquo;s actions handlers,</li>
-          <li><code>gglobals.zil</code> defines all objects that can be referenced from anywhere in the game,</li>
-          <li><code>gmacros.zil</code> contains functions that will be executed at compile-time to generate code, and</li>
-          <li><code>gclock.zil</code> handles delayed (<em>queued</em>) events.</li>
-        </ul>
+          <li>A <strong>Zork game</strong> is composed of 10 <code>.zil</code> files:</li>
+          <ul>
+            <li>A loader,</li>
+            <li>7 files with common utilities for all games, and</li>
+            <li>2 files with the game definition.</li>
+          </ul>
+          
+          <li><strong>Generic files</strong></li>
+          <ul>
+            <li><code>gmain.zil</code> handles the game loop,</li>
+            <li><code>gparser.zil</code> validates the player&rsquo;s input and determines which action is taken and which objects are involved,</li>
+            <li><code>gsyntax.zil</code> defines which sentences are a valid input,</li>
+            <li><code>gverbs.zil</code> contains all the player&rsquo;s actions handlers,</li>
+            <li><code>gglobals.zil</code> defines all objects that can be referenced from anywhere in the game,</li>
+            <li><code>gmacros.zil</code> contains functions that will be executed at compile-time to generate code, and</li>
+            <li><code>gclock.zil</code> handles delayed (<em>queued</em>) events.</li>
+          </ul>
 
-        <li><strong>Specific files</strong></li>
-        <ul>
-          <li><code><em>n</em>dungeon.zil</code> contains the map of the game and the objects the player can interact with, and</li>
-          <li><code><em>n</em>actions.zil</code> contains all the objects&rsquo; action handlers.</li>
+          <li><strong>Specific files</strong></li>
+          <ul>
+            <li><code><em>n</em>dungeon.zil</code> contains the map of the game and the objects the player can interact with, and</li>
+            <li><code><em>n</em>actions.zil</code> contains all the objects&rsquo; action handlers.</li>
+          </ul>
         </ul>
       </div>
     </aside>

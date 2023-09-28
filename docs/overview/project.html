@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Overview</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>The adven<em>j</em>urer reloaded</h1>
+  </header>
+
+  <section>
+    <aside>
+      <img src="../img/cropped-advenjurer-1.png" />
+      <h3>Contents</h3>
+      <a href="../index.html">Introduction</a>
+      <a href="./before_we_start.html">Before we start</a>
+      <a href="./structure.html">Zork code structure</a>
+      <p>Project organization</p>
+    </aside>
+    <article>
+      <small><a href="./structure.html">Zork code structure</a></small>
+
+
+      <h1>Project organization</h1>
+
+      <p>Now that we have seen how a Zork game is structured, it&rsquo;s time for us to decide how will we organize our
+        project. This entry defines how will we divide our problem space and, therefore, what are we going to build.</p>
+
+      <h2>Project scope</h2>
+
+      <p>Time to ask ourselves the most important question: <em>What do we want to achieve?</em></p>
+
+      <p>A first, very ambiguous answer could be:</p>
+
+      <p class="boxed">I want to allow Interactive Fiction (IF) creators to create games using
+        a language as close to ZIL as possible, and to provide players with a way of running the games that have been
+        created.</p>
+
+      <p>So we&rsquo;re catering to two different groups of people and in two different moments. Maybe we can rephrase
+        the previous answer to be more specific:</p>
+
+      <p class="boxed">I want to create a ZIL-like language for IF creators to create new games, and a game runtime
+        engine for players to play games written in said language.</p>
+
+      <h2>The language</h2>
+
+      <p>I must confess that my first approach was to create a ZIL &ldquo;compiler&rdquo; &mdash;actually, only
+        <em>half</em> a parser&mdash; so original ZIL code could be run. But I&rsquo;m sure there are many lexical,
+        syntactical, and semantical analyzers out there, and it&rsquo;s been a while since I worked in anything related
+        to compilers or interpreters.
+      </p>
+
+      <p>So, next best thing would be creating a <em>Domain Specific Language</em> on top of Clojure. Or rather, support
+        an existing DSL with Clojure code. Since ZIL has a different syntax than Clojure (for instance, it uses angle
+        brackets to define forms), our DSL will be <em>similar</em> to ZIL but not identical.</p>
+
+      <p>The easiest way to go from here is to create a library with Clojure macros and/or functions that do whatever
+        ZIL does. This kind of language must:</p>
+
+      <ul>
+        <li>Help the game creators during the coding phase, when they define the map, the objects, and the object action
+          handlers.</li>
+        <li>Drive interaction with the <em>game engine</em> during the playing (running) phase.</li>
+      </ul>
+
+      <p>In other words, using this language we should be able to create our own <code>dungeon.zil</code> and
+        <code>actions.zil</code> files, and the game engine should be able to create the map, objects, and action
+        handlers defined in said files.
+      </p>
+
+      <h2>The game engine</h2>
+
+      <p>While the language will be used to create the game-specific part of the code, the engine should provide the
+        functionality the generic files handle in ZIL.</p>
+
+      <p>We don&rsquo;t need to maintain the same separation for the code, and &mdash;which is even more
+        important&mdash; we don&rsquo;t have to use our DSL to code the engine. We just need to ensure there&rsquo;s a
+        way to:</p>
+
+      <ul>
+        <li>Read the map, objects, and actions and set up the game so it can be played</li>
+        <li>Start the game and initiate the game loop</li>
+        <li>Get the player&rsquo;s input, parse it, and respond to it in an appropriate manner</li>
+      </ul>
+
+      <p>The second bullet point would be, more or less, the equivalent of <code>gmain.zil</code>. The last one involves
+        the rest of the generic <code>.zil</code> files. But, then&hellip; what about the first one?</p>
+
+      <p>Well, since the language is Clojure <em>decorated</em> with a ZIL-line DSL, couldn&rsquo;t we just <em>run</em>
+        the
+        game-specific files? Of course we can!</p>
+
+      <h2>The whole project</h2>
+
+      <p>This is what we are going to work on: a <strong>single library</strong> that exports <strong>two different
+          <em>modules:</em></strong> one to support the <strong>ZIL-like language</strong> &mdash;for the game creators
+        to use&mdash;, and the other to act as the <strong>game engine</strong>.</p>
+
+      <p>Game creators will need to write their own Clojure project and include our library as a dependency, so they can
+        use ZIcL. They will compile their project as an executable that, using the game engine, will make the game work.</p>
+
+      <p>In our project, we will create example games to show how a game creator would use ZIcL.</p>
+
+      <small><a href="./structure.html">Zork code structure</a></small>
+    </article>
+
+    <aside>
+      <div>
+        <h3>TL;DR</h3>
+        <ul>
+          <li><strong>Scope</strong></li>
+          <ul>
+            <li>a ZIL-like language, and</li>
+            <li>a game engine</li>
+          </ul>
+
+          <li><strong>Language</strong></li>
+          <ul>
+            <li>a Clojure library for the ZIL-like DSL</li>
+            <li>needs to be <em>runnable</em> by the game engine</li>
+          </ul>
+
+          <li><strong>Engine</strong></li>
+          <ul>
+            <li>a Clojure library that works like the Zork generic code</li>
+            <li>the game-specific files, created using the DSL, need to interact with it</li>
+          </ul>
+
+          <li><strong>Project</strong></li>
+          <ul>
+            <li>a single library with 2 modules: language & engine</li>
+            <li>game creators will write their own Clojure application using the language</li>
+            <li>geme executable will use both the language and the engine to make the games work</li>
+          </ul>
+        </ul>
+      </div>
+    </aside>
+  </section>
+</body>
+
+</html>
