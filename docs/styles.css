@@ -40,7 +40,7 @@ header {
 
 section {
   display: grid;
-  grid-template-columns: 20vw 50vw 30vw;
+  grid-template-columns: 20vw 55vw 25vw;
   grid-template-areas: "contents article aside";
   width: 100vw;
   height: 85vh;
