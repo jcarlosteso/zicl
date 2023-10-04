@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Introduction</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>The adven<em>j</em>urer reloaded</h1>
+  </header>
+
+  <section>
+    <aside>
+      <img src="../img/occult.png" />
+    </aside>
+    <article>
+      <small><a href="javascript:history.back();">Back</a></small>
+      <small><a href="./stateful_vs_stateless.html">Stateful vs. Stateless</a></small>
+
+      <h1>Imperative vs. Functional</h1>
+
+      <p>While Fortran uses <em>instructions,</em> LISP uses <em>expressions.</em> In other words,
+        imperative languages help programmers define <em>how</em> a certain task must be performed, while functional
+        languages help them define <em>what</em> a particular concept is.
+      </p>
+
+      <p>Let&rsquo;s see how this is different using Javascript, because it can be used either way, and also because
+        it&rsquo;s almost ubiquitous. We will create a simple script that multiplies every even number in a vector by
+        10, calculates the sum of all multiplications, and displays the sum in console:</p>
+
+      <div class="code-comparison">
+        <strong>Imperative</strong>
+        <strong>Functional</strong>
+        <pre>
+const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+let result = 0;
+
+for (let i = 0; i < numbers.length; i++) {
+  if (numbers[i] % 2 === 0) {
+    result += numbers[i] * 10;
+  }
+}
+
+console.log(result);
+        </pre>
+        <pre>
+console.log(
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    .filter(number => number % 2 === 0)
+    .map(number => number * 10)
+    .reduce((sum, number) => sum + number, 0)
+);
+        </pre>
+      </div>
+
+      <p>The code in the left side could be read as: <em>&ldquo;Take this list of numbers and store it in a box labelled
+          as <code>numbers.</code> Then, in a different box labelled <code>result,</code> store a zero. Now,
+          take the first number in the list you stored in the <code>numbers</code> box, and, if and only if it&rsquo;s
+          even, take whatever value we have stored in the <code>result</code> box, add to it the number you have taken
+          multiplied by 10, and store the total again into the <code>result</code> box, and get the next number, if any.
+          You have to do this until you run out of numbers in the list. When you&rsquo;re done, write the contents of
+          the <code>result</code> box down.&rdquo;</em></p>
+
+      <p>Throw a bunch of swearwords on that and you could easily hear it in Tom Highway&rsquo;s voice &mdash;meaning in
+        Clint Eastwood&rsquo;s voice, of course. On the other hand, the left side code could be read as: <em>&ldquo;The
+          number we will write is the result of taking only even numbers in this list, multiplying them all by 10, and
+          adding the result of the multiplications.&rdquo;</em></p>
+
+      <p>Both &ldquo;transcriptions&rdquo; may seem almost identical, but that&rsquo;s because I am simplifying the
+        first
+        one. A more accurate version would include explaining <em>how</em> do we take the first number in the list,
+        <em>how</em> do we take the next number in the list, and <em>how</em> do we know we are run out of numbers. It
+        would also need to detail <em>how</em> do we know if a number is odd or even.
+      </p>
+
+      <p>Also, both of them are just two different flavors of code written in an imperative language with some
+        functional toppings, and that doesn&rsquo;t help perceiving the difference. The next entry will shed some
+        light on that, hopefully.</p>
+
+      <small><a href="javascript:history.back();">Back</a></small>
+      <small><a href="./stateful_vs_stateless.html">Stateful vs. Stateless</a></small>
+
+    </article>
+  </section>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Introduction</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>The adven<em>j</em>urer reloaded</h1>
+  </header>
+
+  <section>
+    <aside>
+      <img src="../img/occult.png" />
+    </aside>
+    <article>
+      <small><a href="javascript:history.back();">Back</a></small>
+
+      <h1>What is LISP?</h1>
+
+      <p>If I just said LISP is a programming language, most of you would figuratively walk away from this site, never
+        to look back. But, yes, at its heart of hearts, LISP is yet another way humans have found to represent
+        algorithms.</p>
+
+      <p>And it&rsquo;s one of the first programming languages, too. The second, after Fortran. And, like Fortran, it
+        was conceived as a way to represent mathematical expressions.</p>
+
+      <p>But LISP is nothing like Fortran. While the latter is an <em>imperative</em> language, the former is a
+        <em>functional</em> one. In the following entries, we will see what does that exactly mean.
+      </p>
+
+
+
+
+      <p>The basic element of every LISP dialect is called the <em>form</em>, which actually means <em>&ldquo;anything
+          that can be evaluated.&rdquo;</em> There&rsquo;s only two types of forms: <em>atoms,</em> and <em>cons.</em>
+      </p>
+
+      <p><strong>Atoms</strong> are simple values. They can be <em>self-evaluated</em> &mdash;like <code>1</code>,
+        which is a simple number without a particular <em>name</em> attached to it&mdash; or <em>symbols</em>
+        &mdash;which refer indirectly to a value.</p>
+
+      <p><strong>Cons,</strong> on the other hand, are <em>pairs of things</em>. The first of these things (called the
+        <em>CAR</em>) is always an atom. The second (called the <em>CDR</em>) can be an atom, too, but it can
+        also be a <em>reference</em> to a next cons.
+      </p>
+
+      <p>A <strong>list,</strong> then, is nothing more than a chain of cons. A list properly built will have a
+        <code>nil</code> &mdash;or an empty list&mdash; as its CDR.
+      </p>
+
+      <small><a href="javascript:history.back();">Back</a></small>
+      <small><a href="./imperative_vs_functional.html">Imperative vs. Functional</a></small>
+
+    </article>
+  </section>
+</body>
+
+</html>

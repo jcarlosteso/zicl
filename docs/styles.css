@@ -213,3 +213,48 @@ article::-webkit-scrollbar-thumb {
 	-webkit-box-shadow: inset 0 0 4px rgba(0,0,0,.3);
 	background-color: darksalmon;
 }
+
+article > div.code-comparison {
+  font-size: 0.75rem;
+  display: grid;
+  grid-template-rows: auto auto;
+  grid-template-columns: 50% 50%;
+}
+
+article > div.code-comparison,
+article > pre.console {
+  margin-bottom: 0.75rem;
+}
+
+article > div.code-comparison > * {
+  padding: 0.2em 1em;
+}
+
+article > div.code-comparison > strong {
+  font-family: 'Barlow', sans-serif;
+  background-color: silver;
+}
+
+article > pre.console {
+  padding: 0.5em;
+}
+
+article > pre.console,
+article > div.code-comparison > pre {
+  padding-top: 0.5em;
+  display: block;
+  background-color: black;
+  color: wheat;
+}
+
+article > div.code-comparison > pre:first-child {
+  border-right: 1px solid silver;
+}
+
+article > div.code-comparison > pre:last-child {
+  border-left: 1px solid silver;
+}
+
+article > pre {
+  font-size: 0.75rem;
+}

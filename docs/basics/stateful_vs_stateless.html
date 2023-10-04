@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Introduction</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>The adven<em>j</em>urer reloaded</h1>
+  </header>
+
+  <section>
+    <aside>
+      <img src="../img/occult.png" />
+    </aside>
+    <article>
+      <small><a href="javascript:history.back();">Back</a></small>
+
+      <h1>Stateful vs. Stateless</h1>
+
+      <p>One of the key features of the Functional Programming paradigm is called <em>immutability,</em> and means
+        exactly what it says. Ok, I&rsquo;ll elaborate on that, by introducing the concept of <em>state</em>.
+      </p>
+
+      <h2>What is state</h2>
+
+      <p>State is what we answer when someone asks us questions like <em>&ldquo;How are you?&rdquo;</em> or
+        <em>&ldquo;How are you feeling?&rdquo;</em> These questions want a snapshot as an answer. State is an isolated
+        frame from a movie. Like when the smart detective freezes the CCTV image she&rsquo;s been watching all night,
+        points her finger to the screen, and says <em>&ldquo;That&rsquo;s him. That&rsquo;s our man.&rdquo;</em>
+      </p>
+
+      <p>Imperative languages &mdash;including Object-Oriented&mdash; are all about checking or changing state. And
+        that&rsquo;s ok, that&rsquo;s how it should be, right? <em>Everything</em> can be thought of as either a
+        checklist or a to-do list. State is what the checklist handles. Changing state is going through the steps of the
+        appropriate to-do list for the expected outcome.</p>
+
+      <p>Let see an example. You want a coffee, so you open your moka pot to check if there&rsquo;s enough
+        coffee in it for another cup. You&rsquo;re lucky, there&rsquo;s just enough
+        for you, so you go grab your mug, come back to the moka pot and pour all of the remaining coffee into it. You
+        drink your nice cup of coffee and feel great. All is well that ends well, right?
+      </p>
+
+      <p><em>Wrong.</em></p>
+
+      <h2>Jerky McJerkface</h2>
+
+      <p><em>&ldquo;How could it be wrong?&rdquo;,</em> you may be wondering. Well, because, while you were gone to get
+        your favorite coffee mug, that stupid guy from Accounting checked the moka pot, saw there was enough coffee for
+        a cup, poured it into the mug <em>he was carrying with him</em> and went away while sipping <em>your</em>
+        coffee. Yeah, what an absolute jerk.</p>
+
+      <p>This here is a problem of <em>concurrency.</em> Several people have access to the only moka pot, and all of
+        them may change its state. The problem with the prior example is that the <em>hypothetical you</em> checked the
+        pot <em>before</em> grabbing a mug, and comes back thinking everything is as it was last time <em>you</em>
+        checked. The Accounting guy may be a jerk, but he was wise enough to <em>first</em> grab a mug, and
+        <em>then</em> check the pot.
+      </p>
+
+      <p>Concurrency has been giving headaches to language creators and coders for decades, and many Imperative
+        languages have found a more or less convoluted way to handle it. Functional languages &mdash;or rather
+        <em>pure</em> Functional languages&mdash; simply avoid it by being <em>stateless.</em>
+      </p>
+
+      <h3>Stateful</h3>
+
+      <p>A <em>stateful</em> language allows creating &ldquo;storage boxes&rdquo; whose content may be altered.
+        That&rsquo;s why these &ldquo;boxes&rdquo; are called <em>variables.</em> Imperative languages, even the
+        Object-Oriented ones, draw a hard line between stuff we work with &mdash;the data&mdash; and the things we can
+        do with that stuff &mdash;the instructions. We instruct the computer to follow a step-by-step procedure as if we
+        were playing and Interactive Fiction game. For instance:</p>
+
+      <pre class="console">
+You are in the KITCHEN.
+There is a MOKA POT on the STOVE.
+There is a TRASH BIN.
+You are carrying NOTHING.
+
+> Take the moka pot.
+You are in the KITCHEN.
+There is a TRASH BIN.
+You are carrying:
+  - 1 MOKA POT.
+
+> Unscrew it.
+You are in the KITCHEN.
+There is a TRASH BIN.
+You are carrying:
+  - 1 KETTLE
+  - 1 BOILER
+
+...
+      </pre>
+
+      <p>There are several things in the previous example that has state. Players know where they are and what are they
+        carrying. Rooms may have stuff in them. Some objects can contain others, others can be opened or closed&hellip;
+        The player&rsquo;s instructions may change these states: <code>Take the moka pot</code>, for example, changes
+        both the player&rsquo;s and the room&rsquo;s inventories.</p>
+
+      <p>A <code>Move</code> instruction would only need a <code>direction</code> argument, because the player&rsquo;s
+        current location is stored in the state. If it&rsquo;s a valid direction, the instruction would alter the state
+        by updating the player&rsquo;s location.</p>
+
+      <h3>Stateless</h3>
+
+      <p>A Functional language, however, won&rsquo;t have state. We won&rsquo;t have <em>variables</em> to store the
+        current value of, for example, the player&rsquo;s location. This means a <code>Move</code> instruction requires
+        <em>two</em> arguments: the current location, and the direction the player is moving to. And it would
+        <em>always</em> return the results, no matter if the move was a legal one or not.
+      </p>
+
+      <h4><em>Pure</em> vs <em>impure</em> functions</h4>
+
+      <p>Functions that rely exclusively on their arguments to do their job and never produce any output except for
+        their result are called <em>pure</em> functions. Another definition for pure functions is that they
+        <em>always</em> provide the same output when given the same input. That could not happen if said function relied
+        on external state to do its job.
+      </p>
+
+
+      <p>Any function that relies in or causes a <em>side effect</em> is an <em>impure</em> function. Side effects
+        include things so basic as writing messages in the console, storing data into a file or a database, or request
+        the user&rsquo;s input. Exceptions are another kind of side effect, since they produce an output but not as the
+        return value of the function.</p>
+
+      <p>While in theory we could build a complete application only using pure functions, most of them will need to make
+        use of certain side effects to be useful. In that case, there should be a clear and hard line drawn between the
+        core functionality &mdash;which should be built with pure functions so it&rsquo;s more easily testable&mdash;,
+        and the I/O &mdash;which <em>needs</em> to be impure.</p>
+
+      <h2>Functional <em>and</em> stateful?</h2>
+
+      <p>Could we write an application using a Functional language and make it have state? It depends on the language,
+        but chances are you can. Common Lisp, for example, has <code>DEFVAR</code>, which creates a <em>variable</em>
+        whose value can be modified by using <code>SETF</code>. Clojure provides different flavors of
+        &ldquo;variables&rdquo; which address different kinds of necessities.</p>
+
+      <p>The real questions here is, <em>should</em> you?</p>
+
+      <small><a href="javascript:history.back();">Back</a></small>
+
+    </article>
+  </section>
+</body>
+
+</html>
