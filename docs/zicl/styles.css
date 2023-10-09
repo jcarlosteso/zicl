@@ -20,10 +20,6 @@ body {
   font-family: 'Arapey', serif;
 }
 
-aside {
-  width: 100%;
-}
-
 h1, h2, h3, h4, small, aside:last-of-type > div {
   font-family: 'Barlow', sans-serif;
 }
@@ -44,6 +40,10 @@ section {
   grid-template-areas: "contents article aside";
   width: 100vw;
   height: 85vh;
+}
+
+aside {
+  width: 100%;
 }
 
 aside:first-of-type {
