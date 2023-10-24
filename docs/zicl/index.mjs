@@ -7,16 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const contents = Array.from(root.children).filter(item => item.localName !== 'aside');
   const tldr  = root.querySelector('aside');
 
-  root.appendChild(Header());
+  root.appendChild(Header('The Adven<em>j</em>urer reloaded'));
   root.appendChild(Section(contents, tldr));
 })
 
-
-
-const Header = () => {
+const Header = (html) => {
   const header = document.createElement('header');
   const h1 = header.appendChild(document.createElement('h1'));
-  h1.innerHTML = 'The Adven<em>j</em>urer reloaded';
+  h1.innerHTML = html;
   
   return header;
 }

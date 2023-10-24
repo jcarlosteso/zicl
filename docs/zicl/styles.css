@@ -80,7 +80,7 @@ article {
   overflow-y: auto;
 }
 
-article code,
+article > code,
 aside code {
   font-size: 0.8em;
 }
@@ -222,7 +222,7 @@ article > div.code-comparison {
 }
 
 article > div.code-comparison,
-article > pre.console {
+article > pre {
   margin-bottom: 0.75rem;
 }
 
@@ -233,6 +233,15 @@ article > div.code-comparison > * {
 article > div.code-comparison > strong {
   font-family: 'Barlow', sans-serif;
   background-color: silver;
+}
+
+article > p > code,
+article > pre {
+  font-size: 0.8em;
+}
+
+article > pre {
+  padding: 1em 0 1em 1em;
 }
 
 article > pre.console {
@@ -256,5 +265,14 @@ article > div.code-comparison > pre:last-child {
 }
 
 article > pre {
-  font-size: 0.75rem;
+  background-color: #1e1e1e;
+  color: #D4D4D4;
+}
+
+article > pre > code {
+  color: #569CD6;
+}
+
+article > pre > code.string {
+  color: #CE9178;
 }

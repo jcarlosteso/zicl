@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Overview</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="/zicl/index.mjs" type="module"></script>
+</head>
+
+<body>
+  <h1>The game engine</h1>
+
+  <p>As we discussed while talking about <a href="/zicl/overview/project.html/#engine">Project structure</a>, one of
+    the pieces we need to provide is the game engine &mdash;the piece of software that sets the game up, waits for
+    player input and reacts to it by executing the requested action or giving the player feedback about why it
+    couldn&rsquo;t
+    be done.</p>
+
+  <h2>Game state</h2>
+
+  <p>As every other game, Interactive Fiction is all about game state. Game designers will use ZIcL to create the
+    initial game state. Players will interact with the game and, as a result, the game state may change. So, apparently,
+    we have to deal with <em>mutable</em> state, right?
+  </p>
+
+  <p>That is precisely ZIL&rsquo;s approach. For example, in Zork I there&rsquo;s a rug in the Living Room that can be
+    moved. Its initial state is defined in the <code>1actions.zil</code> file, like this:</p>
+
+  <pre>&lt;<code>GLOBAL</code> RUG-MOVED <code>&lt;&gt;</code>&gt;</pre>
+
+  <p>where <code>&lt;&gt;</code> is an <em>empty list</em>, which serves as a boolean <em>false</em>. If, while in the
+    Living Room, the player enters something along the lines of <code>MOVE RUG</code>, the subsequent action should do
+    something like this:</p>
+
+  <pre><code>&lt;SETG</code> RUG-MOVED <code>T&gt;</code></pre>
+
+  <p>where <code>T</code> is the boolean <em>true</em>.</p>
+
+  <p>If we wanted to get the current value of <code>RUG-MOVED</code>, we need to do something like this:</p>
+
+  <pre>&lt;<code>COND (</code>,RUG-MOVED</pre>
+
+  <p>where <code>,RUG-MOVED</code> means <em>&ldquo;get the current value of the global atom
+      <code>RUG-MOVED</code>.&rdquo;</em> Using the comma means the referred atom is global, and the expression is
+    shorthand for <code>&lt;GVAL RUG-MOVED&gt;</code>. This is because it is <em>legal</em> to define a local
+    variable with the same name of a global one; you just need to prefix the variable name with a comma when
+    referring to the global one, and with a dot (<code>.</code>) when referring to the local one.</p>
+
+  <h2>Initial state</h2>
+
+  <p>The initial state of the game is also defined by the rooms and objects that the game designer created. ZIL uses
+    structured data to model these. Both rooms and objects have properties, as if they were objects in the OOP sense,
+    but they do not have methods. Instead, some of their properties contain a reference to a <code>ROUTINE</code>
+    that will be executed under certain conditions.</p>
+
+  <p>In the file <code>gglobals.zil</code> you can find the following code:</p>
+
+  <pre>&lt;<code>OBJECT</code> GLOBAL-OBJECTS
+  <code>(FLAGS</code> RMUNGBIT INVISIBLE TOUCHBIT SURFACEBIT TRYTAKEBIT
+         OPENBIT SEARCHBIT TRANSBIT ONBIT RLANDBIT FIGHTBIT
+         STAGGERED WEARBIT<code>)</code>&gt;
+        
+&lt;<code>OBJECT</code> LOCAL-GLOBALS
+  <code>(IN</code> GLOBAL-OBJECTS<code>)</code>
+  <code>(SYNONYM</code> ZZMGCK<code>)</code>
+  <code>(DESCFCN</code> PATH-OBJECT<code>)</code>
+  <code>(GLOBAL</code> GLOBAL-OBJECTS<code>)</code>
+  <code>(ADVFCN</code> 0)
+  <code>(FDESC</code> <code class="string">"F"</code><code>)</code>
+  <code>(LDESC</code> <code class="string">"F"</code><code>)</code>
+  <code>(PSEUDO</code> <code class="string">"FOOBAR"</code> V-WALK<code>)</code>
+  <code>(CONTFCN</code> 0<code>)</code>
+  <code>(VTYPE</code> 1<code>)</code>
+  <code>(SIZE</code> 0<code>)</code>
+  <code>(CAPACITY</code> 0<code>)</code>&gt;
+
+&lt;<code>OBJECT</code> ROOMS
+  <code>(IN</code> TO ROOMS<code>)</code>&gt;</pre>
+
+  <p>There&rsquo;s a couple things to highlight in the previous code:</p>
+
+  <ul>
+    <li>ZIL is ambiguous when using <code>OBJECT</code>. It can refer to an in-game thing, or to a data structure. These
+      examples are of the second kind.</li>
+    <li>We can define global objects, and&hellip; <em>local</em> globals?</li>
+  </ul>
+
+  <h3>Referencing objects</h3>
+
+  <p>When talking about in-game objects, they usually are found on a room, or in the player&rsquo;s inventory if they have been
+    taken. That&rsquo;s what the <code>IN</code> &mdash;<code>LOC</code>, in older versions of ZIL&mdash; property is for: to indicate
+    in which room is the object found. The above code sample uses <code>IN</code>, though, to indicate that <code>LOCAL-GLOBALS</code>
+    is &ldquo;inside&rdquo; <code>GLOBAL-OBJECTS</code>. What does that mean?</p>
+
+  <p><code>GLOBAL-OBJECTS</code> is a container for every object that can be referenced from anywere in the game. The sky, for
+    example. Or the ground. Or the player, and parts of the player&rsquo;s body. But what are <code>LOCAL-GLOBALS</code>? These are
+    the objects that can be referenced from more than one room. A door connecting two rooms, for example. Or a staircase. A better name for
+    <code>LOCAL-GLOBALS</code> would have been <code>SHARED-OBJECTS</code>, in my opinion.</p>
+
+  <p><code>ROOM</code> structures have a <code>GLOBAL</code> property to indicate what objects is the room sharing.</p>
+
+  <h2>Possible approaches</h2>
+
+  <p>We have seen that ZIL uses mutable state, and different <em>stores</em> for different pieces of the state. Rooms and objects are their
+    own structures. Other state values are stored in their individual atoms. We could just <em>port</em> that code to Clojure, since it is
+    also a Lisp and, therefore, allows creating mutable <em>variables.</em></p>
+
+  <p>Keeping the bare basics of the previous code sample, we could do something like this:</p>
+
+  <pre>(<code>def</code> global-objects <code>(</code>atom <code class="string">{}</code><code>)</code>)
+
+(<code>def</code> shared-objects <code>(</code>atom <code class="string">{}</code><code>)</code>)
+
+(<code>def</code> rooms <code>(</code>atom <code class="string">{}</code><code>)</code>)</pre>
+
+  <p>There, we just created three <em>vars</em> (renaming <code>LOCAL-GLOBALS</code> as <code>shared-objects</code>) and initialized them with
+    a Clojure <code>atom</code>, each containing an empty hashmap. Similarly, we could model the <code>RUG-MOVED</code> flag like this:</p>
+
+  <pre>(<code>def</code> rug-moved? <code>(</code>atom <code>false)</code>)</pre>
+
+  <p>Getting the value for any of these vars would be as simple as using <code>deref</code>, or the shorter form: <code>@rug-moved?</code>,
+    for instance, would return the current value of the atom bound to the <code>rug-moved?</code> symbol. If we wanted to change its value, 
+    we would have to use something like <code>(reset! rug-moved? true)</code>.</p>
+
+  <p>The reason why I preferred initializing the first three atoms with an empty hashmap is because I think that would be the preferred way of
+    storing collections of items, so we can access them via a key. For instance, if we had this definition:</p>
+
+  <pre>&lt;<code>OBJECT</code> HANDS
+  <code>(IN</code> GLOBAL-OBJECTS<code>)</code>
+  <code>(DESC</code><code class="string"> "pair of hands"</code><code>)</code>&gt;</pre>
+
+  <p>we could model it so it resulted in <code>global-objects</code> containing something like <code>{ :hands { :desc "pair of hands" } }</code>.
+    We could, then, refer to the object using <code>(:hands @global-objects)</code>.</p>
+
+  <h3>A single store</h3>
+
+  <p>Another approach could be having <em>all</em> of the game state bound to a single symbol. For example, something like this:</p>
+
+  <pre>(<code>def</code> game-state
+  <code>(</code>atom
+   <code class="string">{</code>:<code>rooms</code> <code class="string">{}</code>
+    :<code>objects</code> <code class="string">{</code>:<code>global {}</code>
+              :<code>shared {}</code><code class="string">}</code>
+    :<code>variables</code> <code class="string">{}}</code><code>)</code>)</pre>
+
+  <p>This approach would make very simple to save/load the game, because it has all of the information needed already &ldquo;serialized&rdquo;
+    in a single structure that we could store as a <code>.edn</code> file.</p>
+
+  <p>On the other hand, adding rooms, objects, or variables would be a little more complicated. For example, if we wanted to create the previous
+    RUG-MOVED flag, we would need to do something like this:</p>
+
+  <pre>(swap! game-state assoc-in <code>[</code>:<code>variables</code> :<code>rug-moved?] false</code>)</pre>
+
+  <p>That would also be the way we update values. For us to get the current value, we would have to do something like <code></code></p>
+
+  <pre>(get-in @game-state <code>[</code>:<code>variables</code> :<code>rug-moved?]</code>)</pre>
+
+  <p>We probably should create some helper functions for this, if we decide to adopt this approach.</p>
+
+  <h3>Going purely functional</h3>
+
+  <p>A single store might allow us to use a <a href="https://en.wikipedia.org/wiki/Store-passing_style" target="_blank" referrerpolicy="no-referrer">
+    Store-passing style</a> technique. With this approach, we would need to structure our game code like this:</p>
+
+  <pre>(<code>defn</code> start <code>[]</code>
+  <code>(loop</code> <code class="string">[</code>state <code class="string">(</code>initial-state<code class="string">)]
+    (</code><code>let</code> <code class="string">[</code>command <code>(</code>get-player-input<code>)</code><code class="string">]
+      (</code><code>if (</code>= <code class="string">"QUIT"</code> command<code>)
+        (</code>println <code class="string">"Bye!"</code><code>)
+        (recur</code> <code class="string">(</code>next-state state command<code class="string">)</code><code>)</code><code class="string">))</code><code>)</code>)</pre>
+
+  <p>Of course, the above code is far from being usable, but it&rsquo;s a &ldquo;template&rdquo; of how the final code could look like. We would obviously need to define
+    the <code>initial-state, get-player-input, </code>and <code>next-state</code> functions. The first one should gather all of the room and object definitions and
+    all of the variables and build a single store with all the initial game state. The second one should retrieve the player&rsquo;s input from the console. The final
+    one should generate a new game state based on the current state and the entered command.</p>
+
+  <p>The main problem of this approach would be creating the initial state in a functional way as pure as we can.</p>
+
+  <aside>
+    <div>
+      <h3>TL;DR</h3>
+      <ul>
+
+      </ul>
+    </div>
+  </aside>
+</body>
+
+</html>

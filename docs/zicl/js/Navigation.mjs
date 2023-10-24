@@ -7,7 +7,7 @@ const Navigation = [
   { url: Url('/overview/before_we_start.html'), label: 'Before we start' },
   { url: Url('/overview/structure.html'), label: 'Zork code structure' },
   { url: Url('/overview/project.html'), label: 'Project organization' },
-  { url: Url('/overview/language.html'), label: 'The language' }
+  { url: Url('/engine/intro.html'), label: 'The game engine' }
 ]
 
 export default Navigation;
