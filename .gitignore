@@ -1,2 +1,4 @@
 .clj-kondo/
 .lsp/
+.swshtaccess
+serve.json

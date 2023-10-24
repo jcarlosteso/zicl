@@ -35,15 +35,17 @@ const Index = (occult) => {
   
   const page = currentPage()
 
-  Navigation.forEach(({url, label}) => {
+  Navigation.forEach(({url, label, matcher}) => {
+    const current = page.match(matcher);
+
     const child = document.createElement(
-      page === url ? 'p' : 'a'
+      current ? 'p' : 'a'
     )
 
     aside.appendChild(child);
     child.textContent = label;
 
-    if (page !== url) child.href = url;
+    if (!current) child.href = url;
   });
 
   return aside;
@@ -62,7 +64,11 @@ const PageLink = ({url, label}) => {
 const Article = (contents) => {
   const article = document.createElement('article');
   const page = currentPage();
-  const pageIndex = Navigation.findIndex(({ url }) => (url === page))
+  const pageIndex = Navigation.findIndex(({ matcher }) => {
+    const matches = page.match(matcher)
+    console.log(page, matcher, matches)
+    return matches
+  })
   
   if (pageIndex === 0) {
     article.id = 'intro';

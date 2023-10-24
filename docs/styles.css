@@ -236,6 +236,7 @@ article > div.code-comparison > strong {
 }
 
 article > p > code,
+article li > code, 
 article > pre {
   font-size: 0.8em;
 }
