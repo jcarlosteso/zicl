@@ -10,177 +10,170 @@
 <body>
   <h1>The game engine</h1>
 
-  <p>As we discussed while talking about <a href="/zicl/overview/project.html/#engine">Project structure</a>, one of
-    the pieces we need to provide is the game engine &mdash;the piece of software that sets the game up, waits for
-    player input and reacts to it by executing the requested action or giving the player feedback about why it
-    couldn&rsquo;t
+  <p>As we discussed while talking about <a href="/zicl/overview/project.html/#engine">Project structure</a>, one of the
+    pieces we need to provide is the game engine &mdash;the piece of software that sets the game up, waits for player
+    input and reacts to it by executing the requested action or giving the player feedback about why it couldn&rsquo;t
     be done.</p>
 
-  <h2>Game state</h2>
+  <h2>Running the game</h2>
 
-  <p>As every other game, Interactive Fiction is all about game state. Game designers will use ZIcL to create the
-    initial game state. Players will interact with the game and, as a result, the game state may change. So, apparently,
-    we have to deal with <em>mutable</em> state, right?
+  <p>ZIL games usually are run by calling the <code>GO</code> routine. This has been placed in several different files
+    but, in the code versions I have, <code>GO</code> can be found in <code><em>&lt;n&gt;</em>actions.zil</code>
+    &mdash;<em>n</em> being the game installment.</p>
+
+  <p>A typical <code>GO</code> routine looks like this:</p>
+
+  <pre>&lt;<code>ROUTINE</code> GO <code>()</code>
+      <code class="string">; Set up timed event queues
+      ; Set initial values for properties, tables, and global variables up
+      ; Set WINNER, PLAYER, HERE & P-IT-OBJECT up
+      ; Move the player to the starting position</code>
+      <code>&lt;</code>V-LOOK<code>&gt;
+      &lt;</code>MAIN-LOOP<code>&gt;
+      &lt;AGAIN&gt;</code></pre>
+
+  <p>In the above code, <code>PLAYER</code> is &mdash;obviously&mdash; the player character, and <code>HERE</code> is
+    the current player&rsquo;s location. <code>WINNER</code> is the <em>actor;</em> usually, that means the player, but
+    it can change if the player is giving orders to someone else, for example. <code>P-IT-OBJECT</code> is the object
+    the word &ldquo;it&rdquo; refers to. Imagine the player gets this description: <em>&ldquo;The room you&rsquo;re in
+      has only a closed door.&rdquo;</em> The player could then enter <em>&ldquo;open door&rdquo;,</em> but if we assign
+    the door object to <code>P-IT-OBJECT,</code> <em>&ldquo;open it&rdquo;</em> would also work. We will dig deeper into
+    this when we work on the parser.</p>
+
+  <p><code>V-LOOK</code> is a <em>verb routine</em> &mdash;hence, the <code>V-</code> prefix. Verb routines are called
+    by the parser when given a valid player input. In this case, it&rsquo;s used programmatically to show the
+    description of the starting room.</p>
+
+  <h2>The game loop</h2>
+
+  <p>Infocom&rsquo;s 1989 <em>Learning ZIL</em> manual, in its Chapter 8, shows a simplified version of the game&rsquo;s
+    <code>MAIN-LOOP</code>:
   </p>
 
-  <p>That is precisely ZIL&rsquo;s approach. For example, in Zork I there&rsquo;s a rug in the Living Room that can be
-    moved. Its initial state is defined in the <code>1actions.zil</code> file, like this:</p>
+  <pre>&lt;<code>ROUTINE</code> MAIN-LOOP <code>(</code><em>argument-list-from-hell</em><code>)
+  &lt;REPEAT</code> <code class="string">()
+    &lt;</code>PARSER<code class="string">&gt;
+    &lt;</code><code>COND</code> <code class="string">(</code><code>&lt;</code><em>did-the-parser-fail?</em><code>&gt; &lt;AGAIN&gt;</code><code class="string">)&gt;
+    &lt;</code>PERFORM ,PRSA ,PRSO ,PRSI<code class="string">&gt;
+    &lt;</code><code>COND</code> <code class="string">(</code><code>&lt;</code><em>did-this-input-cause-time-to-pass?</em><code>&gt;
+           &lt;</code><em>call-room-function-with-M-END</em><code>&gt;
+           &lt;</code>CLOCKER<code>&gt;</code><code class="string">)&gt;</code><code>&gt;</code>&gt;</pre>
 
-  <pre>&lt;<code>GLOBAL</code> RUG-MOVED <code>&lt;&gt;</code>&gt;</pre>
+  <p><code>PARSER</code> is the routine that requests, reads, and analyzes the player&rsquo;s input. If the parser
+    cannot match said input against any of the valid syntaxes, it should give feedback to the player and mark the
+    failure somehow. The following <code>COND</code> checks if the parser failed and, if that&rsquo;s the case, finishes
+    the iteration and returns control to the beginning of the loop with <code>AGAIN.</code></p>
 
-  <p>where <code>&lt;&gt;</code> is an <em>empty list</em>, which serves as a boolean <em>false</em>. If, while in the
-    Living Room, the player enters something along the lines of <code>MOVE RUG</code>, the subsequent action should do
-    something like this:</p>
+  <p><code>PERFORM</code> is a routine that executes the action triggered by a valid input. The parser identifies three
+    relevant constituents on the sentence given by the user &mdash;its verb, its direct object, and its indirect
+    object&mdash; and stores them in three different globals: <code>PRSA</code> for the verb (or <em>action</em>),
+    <code>PRSO</code> for the direct object, and <code>PRSI</code> for the indirect object. <code>PERFORM</code> gets
+    these three values and uses them to follow the player&rsquo;s orders.
+  </p>
 
-  <pre><code>&lt;SETG</code> RUG-MOVED <code>T&gt;</code></pre>
+  <p>Before the iteration finishes, there&rsquo;s another <code>COND</code> that checks if the action took a turn and,
+    if it did, first will call the current room&rsquo;s <em>location routine</em> with <code>M-END</code> as its
+    argument. Location routines are functions with only an argument indicating the context of the call, in this case,
+    the end of a turn. Also, if the action took a turn, the <code>CLOCKER</code> routine is called to handle timed
+    events.</p>
 
-  <p>where <code>T</code> is the boolean <em>true</em>.</p>
+  <h2>Setting the game up</h2>
 
-  <p>If we wanted to get the current value of <code>RUG-MOVED</code>, we need to do something like this:</p>
+  <p>Leaving timed events aside for the moment, <code>GO</code> routine has an inital stage where stuff is set up so the
+    game can be played. I mean the part we covered with the <em>&ldquo;Set initial values for properties, tables, and
+      global
+      variables up&rdquo;</em> comment.</p>
 
-  <pre>&lt;<code>COND (</code>,RUG-MOVED</pre>
+  <p>For example, all Zork original games have this declaration in their <code>gverbs.zil</code> file:</p>
 
-  <p>where <code>,RUG-MOVED</code> means <em>&ldquo;get the current value of the global atom
-      <code>RUG-MOVED</code>.&rdquo;</em> Using the comma means the referred atom is global, and the expression is
-    shorthand for <code>&lt;GVAL RUG-MOVED&gt;</code>. This is because it is <em>legal</em> to define a local
-    variable with the same name of a global one; you just need to prefix the variable name with a comma when
-    referring to the global one, and with a dot (<code>.</code>) when referring to the local one.</p>
+  <pre>&lt;<code>GLOBAL</code> LIT <code>&lt;&gt;</code>&gt;</pre>
 
-  <h2>Initial state</h2>
+  <p>and then, in their respective <code>GO</code> routines they toggle it on before the loop starts, like this:</p>
 
-  <p>The initial state of the game is also defined by the rooms and objects that the game designer created. ZIL uses
-    structured data to model these. Both rooms and objects have properties, as if they were objects in the OOP sense,
-    but they do not have methods. Instead, some of their properties contain a reference to a <code>ROUTINE</code>
-    that will be executed under certain conditions.</p>
+  <pre><code>&lt;SETG</code> LIT <code>T&gt;</code></pre>
 
-  <p>In the file <code>gglobals.zil</code> you can find the following code:</p>
+  <p>Some objects are given a <code>VTYPE</code> property that marks them as only usable in certain type of rooms. In
+    some Zork
+    titles, there is a comment in the <code>GO</code> routine explaining that the compiler didn't handle it well, but
+    apparently
+    that&rsquo;s only the case if we wanted to assign a flag value to the property. For example, in Zork 2 we can find a
+    <code>BALLOON</code> object with its <code>VTYPE</code> prop set to 0, but then in the <code>GO</code> routine we
+    can find
+    this code:
+  </p>
 
-  <pre>&lt;<code>OBJECT</code> GLOBAL-OBJECTS
-  <code>(FLAGS</code> RMUNGBIT INVISIBLE TOUCHBIT SURFACEBIT TRYTAKEBIT
-         OPENBIT SEARCHBIT TRANSBIT ONBIT RLANDBIT FIGHTBIT
-         STAGGERED WEARBIT<code>)</code>&gt;
-        
-&lt;<code>OBJECT</code> LOCAL-GLOBALS
-  <code>(IN</code> GLOBAL-OBJECTS<code>)</code>
-  <code>(SYNONYM</code> ZZMGCK<code>)</code>
-  <code>(DESCFCN</code> PATH-OBJECT<code>)</code>
-  <code>(GLOBAL</code> GLOBAL-OBJECTS<code>)</code>
-  <code>(ADVFCN</code> 0)
-  <code>(FDESC</code> <code class="string">"F"</code><code>)</code>
-  <code>(LDESC</code> <code class="string">"F"</code><code>)</code>
-  <code>(PSEUDO</code> <code class="string">"FOOBAR"</code> V-WALK<code>)</code>
-  <code>(CONTFCN</code> 0<code>)</code>
-  <code>(VTYPE</code> 1<code>)</code>
-  <code>(SIZE</code> 0<code>)</code>
-  <code>(CAPACITY</code> 0<code>)</code>&gt;
+  <pre><code class="string">;"clean up junk compiler can't do"</code>
+<code>&lt;PUTP</code> ,BALLOON ,P?VTYPE ,NONLANDBIT<code>&gt;</code></pre>
 
-&lt;<code>OBJECT</code> ROOMS
-  <code>(IN</code> TO ROOMS<code>)</code>&gt;</pre>
+  <p>where we assign the value of the global <code>NONLANDBIT</code> to the <code>VTYPE</code> property of the
+    <code>BALLOON</code> object.</p>
 
-  <p>There&rsquo;s a couple things to highlight in the previous code:</p>
+  <p>Tables are actually ordered lists of values, like Clojure vectors. If we want to create a two-dimensional table, we
+    would need to use a
+    <code>TABLE</code> whose elements are also <code>TABLE</code>s. Zork 1, for example, have melee results stored in
+    different tables. Some of
+    these tables have &ldquo;calculated&rdquo; elements, and apparently that&rsquo;s something the compiler can&rsquo;t
+    handle in the definition
+    of the global that contain them. Zork 1, in its <code>1actions.zil</code> file, has this definition:
+  </p>
 
-  <ul>
-    <li>ZIL is ambiguous when using <code>OBJECT</code>. It can refer to an in-game thing, or to a data structure. These
-      examples are of the second kind.</li>
-    <li>We can define global objects, and&hellip; <em>local</em> globals?</li>
-  </ul>
+  <pre>&lt;<code>GLOBAL</code> DEF1-RES
+  <code>&lt;TABLE</code> DEF1
+         0 <code class="string">;&lt;REST ,DEF1 2&gt;</code>
+         0 <code class="string">;&lt;REST ,DEF1 4&gt;</code><code>&gt;</code>&gt;</pre>
 
-  <h3>Referencing objects</h3>
+  <p>The comments in that definition indicate what is the value we wanted to assign to these elements. That&rsquo;s what
+    the <code>GO</code> routine
+    handles with this code:</p>
 
-  <p>When talking about in-game objects, they usually are found on a room, or in the player&rsquo;s inventory if they have been
-    taken. That&rsquo;s what the <code>IN</code> &mdash;<code>LOC</code>, in older versions of ZIL&mdash; property is for: to indicate
-    in which room is the object found. The above code sample uses <code>IN</code>, though, to indicate that <code>LOCAL-GLOBALS</code>
-    is &ldquo;inside&rdquo; <code>GLOBAL-OBJECTS</code>. What does that mean?</p>
+  <pre><code>&lt;PUT</code> ,DEF1-RES 1 <code class="string">&lt;</code>REST ,DEF1 2<code class="string">&gt;</code><code>&gt;</code>
+<code>&lt;PUT</code> ,DEF1-RES 2 <code class="string">&lt;</code>REST ,DEF1 4<code class="string">&gt;</code><code>&gt;</code></pre>
 
-  <p><code>GLOBAL-OBJECTS</code> is a container for every object that can be referenced from anywere in the game. The sky, for
-    example. Or the ground. Or the player, and parts of the player&rsquo;s body. But what are <code>LOCAL-GLOBALS</code>? These are
-    the objects that can be referenced from more than one room. A door connecting two rooms, for example. Or a staircase. A better name for
-    <code>LOCAL-GLOBALS</code> would have been <code>SHARED-OBJECTS</code>, in my opinion.</p>
+  <p>where <code>DEF1</code> is another table also defined in <code>1actions.zil.</code> Note the first element of a
+    table has <code>0</code> as its index.</p>
 
-  <p><code>ROOM</code> structures have a <code>GLOBAL</code> property to indicate what objects is the room sharing.</p>
-
-  <h2>Possible approaches</h2>
-
-  <p>We have seen that ZIL uses mutable state, and different <em>stores</em> for different pieces of the state. Rooms and objects are their
-    own structures. Other state values are stored in their individual atoms. We could just <em>port</em> that code to Clojure, since it is
-    also a Lisp and, therefore, allows creating mutable <em>variables.</em></p>
-
-  <p>Keeping the bare basics of the previous code sample, we could do something like this:</p>
-
-  <pre>(<code>def</code> global-objects <code>(</code>atom <code class="string">{}</code><code>)</code>)
-
-(<code>def</code> shared-objects <code>(</code>atom <code class="string">{}</code><code>)</code>)
-
-(<code>def</code> rooms <code>(</code>atom <code class="string">{}</code><code>)</code>)</pre>
-
-  <p>There, we just created three <em>vars</em> (renaming <code>LOCAL-GLOBALS</code> as <code>shared-objects</code>) and initialized them with
-    a Clojure <code>atom</code>, each containing an empty hashmap. Similarly, we could model the <code>RUG-MOVED</code> flag like this:</p>
-
-  <pre>(<code>def</code> rug-moved? <code>(</code>atom <code>false)</code>)</pre>
-
-  <p>Getting the value for any of these vars would be as simple as using <code>deref</code>, or the shorter form: <code>@rug-moved?</code>,
-    for instance, would return the current value of the atom bound to the <code>rug-moved?</code> symbol. If we wanted to change its value, 
-    we would have to use something like <code>(reset! rug-moved? true)</code>.</p>
-
-  <p>The reason why I preferred initializing the first three atoms with an empty hashmap is because I think that would be the preferred way of
-    storing collections of items, so we can access them via a key. For instance, if we had this definition:</p>
-
-  <pre>&lt;<code>OBJECT</code> HANDS
-  <code>(IN</code> GLOBAL-OBJECTS<code>)</code>
-  <code>(DESC</code><code class="string"> "pair of hands"</code><code>)</code>&gt;</pre>
-
-  <p>we could model it so it resulted in <code>global-objects</code> containing something like <code>{ :hands { :desc "pair of hands" } }</code>.
-    We could, then, refer to the object using <code>(:hands @global-objects)</code>.</p>
-
-  <h3>A single store</h3>
-
-  <p>Another approach could be having <em>all</em> of the game state bound to a single symbol. For example, something like this:</p>
-
-  <pre>(<code>def</code> game-state
-  <code>(</code>atom
-   <code class="string">{</code>:<code>rooms</code> <code class="string">{}</code>
-    :<code>objects</code> <code class="string">{</code>:<code>global {}</code>
-              :<code>shared {}</code><code class="string">}</code>
-    :<code>variables</code> <code class="string">{}}</code><code>)</code>)</pre>
-
-  <p>This approach would make very simple to save/load the game, because it has all of the information needed already &ldquo;serialized&rdquo;
-    in a single structure that we could store as a <code>.edn</code> file.</p>
-
-  <p>On the other hand, adding rooms, objects, or variables would be a little more complicated. For example, if we wanted to create the previous
-    RUG-MOVED flag, we would need to do something like this:</p>
-
-  <pre>(swap! game-state assoc-in <code>[</code>:<code>variables</code> :<code>rug-moved?] false</code>)</pre>
-
-  <p>That would also be the way we update values. For us to get the current value, we would have to do something like <code></code></p>
-
-  <pre>(get-in @game-state <code>[</code>:<code>variables</code> :<code>rug-moved?]</code>)</pre>
-
-  <p>We probably should create some helper functions for this, if we decide to adopt this approach.</p>
-
-  <h3>Going purely functional</h3>
-
-  <p>A single store might allow us to use a <a href="https://en.wikipedia.org/wiki/Store-passing_style" target="_blank" referrerpolicy="no-referrer">
-    Store-passing style</a> technique. With this approach, we would need to structure our game code like this:</p>
-
-  <pre>(<code>defn</code> start <code>[]</code>
-  <code>(loop</code> <code class="string">[</code>state <code class="string">(</code>initial-state<code class="string">)]
-    (</code><code>let</code> <code class="string">[</code>command <code>(</code>get-player-input<code>)</code><code class="string">]
-      (</code><code>if (</code>= <code class="string">"QUIT"</code> command<code>)
-        (</code>println <code class="string">"Bye!"</code><code>)
-        (recur</code> <code class="string">(</code>next-state state command<code class="string">)</code><code>)</code><code class="string">))</code><code>)</code>)</pre>
-
-  <p>Of course, the above code is far from being usable, but it&rsquo;s a &ldquo;template&rdquo; of how the final code could look like. We would obviously need to define
-    the <code>initial-state, get-player-input, </code>and <code>next-state</code> functions. The first one should gather all of the room and object definitions and
-    all of the variables and build a single store with all the initial game state. The second one should retrieve the player&rsquo;s input from the console. The final
-    one should generate a new game state based on the current state and the entered command.</p>
-
-  <p>The main problem of this approach would be creating the initial state in a functional way as pure as we can.</p>
-
+  <p>These settings, along with the &ldquo;dungeon&rdquo; map and objects, would be the game&rsquo;s <em>initial
+      state</em>. We will talk more about game
+    state in the next entry.</p>
   <aside>
     <div>
       <h3>TL;DR</h3>
       <ul>
-
+        <li>
+          <strong>Objectives</strong>
+          <ul>
+            <li>Analyzing the <code>GO</code> routine</li>
+            <li>Analyzing the game&rsquo;s main loop</li>
+          </ul>
+        </li>
+        <li>
+          <strong>The <code>GO</code> routine</strong>
+          <ul>
+            <li>Sets the game up,</li>
+            <li>Places the player in the starting spot,</li>
+            <li>Describes the current room, and</li>
+            <li>Starts the main loop.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Every <code>MAIN-LOOP</code> iteration</strong>
+          <ul>
+            <li>Calls the parser</li>
+            <li>If the parser fails, skips the rest of the iteration</li>
+            <li>If it succeeds, sets the verb, direct objject, and indirect object into the appropriate globals</li>
+            <li>If the action consumed a game turn, calls the current room function with <code>M-END</code> as its argument,
+              and then runs the <code>CLOCKER</code></li>
+          </ul>
+        </li>
+        <li>
+          <strong>Game setup</strong>
+          <ul>
+            <li>Global variables are declared with <code>GLOBAL</code>. We can assign them values with <code>SETG</code>.</li>
+            <li>We can modify the value of an object property using <code>PUTP</code>.</li>
+            <li>A &ldquo;list&rdquo; of values is a <code>TABLE</code>. We can modify the value of any of its elements using
+              <code>PUT</code>.</li>
+          </ul>
+        </li>
       </ul>
     </div>
   </aside>
