@@ -64,11 +64,7 @@ const PageLink = ({url, label}) => {
 const Article = (contents) => {
   const article = document.createElement('article');
   const page = currentPage();
-  const pageIndex = Navigation.findIndex(({ matcher }) => {
-    const matches = page.match(matcher)
-    console.log(page, matcher, matches)
-    return matches
-  })
+  const pageIndex = Navigation.findIndex(({ matcher }) => page.match(matcher))
   
   if (pageIndex === 0) {
     article.id = 'intro';
