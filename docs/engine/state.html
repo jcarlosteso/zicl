@@ -8,15 +8,7 @@
 </head>
 
 <body>
-  <h1>The game engine</h1>
-
-  <p>As we discussed while talking about <a href="/zicl/overview/project.html/#engine">Project structure</a>, one of
-    the pieces we need to provide is the game engine &mdash;the piece of software that sets the game up, waits for
-    player input and reacts to it by executing the requested action or giving the player feedback about why it
-    couldn&rsquo;t
-    be done.</p>
-
-  <h2>Game state</h2>
+  <h1>Game state</h1>
 
   <p>As every other game, Interactive Fiction is all about game state. Game designers will use ZIcL to create the
     initial game state. Players will interact with the game and, as a result, the game state may change. So, apparently,
@@ -29,7 +21,8 @@
   <pre>&lt;<code>GLOBAL</code> RUG-MOVED <code>&lt;&gt;</code>&gt;</pre>
 
   <p>where <code>&lt;&gt;</code> is an <em>empty list</em>, which serves as a boolean <em>false</em>. If, while in the
-    Living Room, the player enters something along the lines of <code>MOVE RUG</code>, the subsequent action should do
+    Living Room, the player enters something along the lines of <em>&ldquo;move rug&rdquo;</em>, the subsequent action
+    should do
     something like this:</p>
 
   <pre><code>&lt;SETG</code> RUG-MOVED <code>T&gt;</code></pre>
@@ -41,7 +34,7 @@
   <pre>&lt;<code>COND (</code>,RUG-MOVED</pre>
 
   <p>where <code>,RUG-MOVED</code> means <em>&ldquo;get the current value of the global atom
-    <code>RUG-MOVED</code>.&rdquo;</em> Using the comma means the referred atom is global, and the expression is
+      <code>RUG-MOVED</code>.&rdquo;</em> Using the comma means the referred atom is global, and the expression is
     shorthand for <code>&lt;GVAL RUG-MOVED&gt;</code>. This is because it is <em>legal</em> to define a local
     variable with the same name of a global one; you just need to prefix the variable name with a comma when
     referring to the global one, and with a dot (<code>.</code>) when referring to the local one.</p>
@@ -53,7 +46,7 @@
     but they do not have methods. Instead, some of their properties contain a reference to a <code>ROUTINE</code>
     that will be executed under certain conditions.</p>
 
-  <p>In the file <code>gglobals.zil</code> you can find the following code:</p>
+  <p>In the <code>gglobals.zil</code> file, you can find the following code:</p>
 
   <pre>&lt;<code>OBJECT</code> GLOBAL-OBJECTS
   <code>(FLAGS</code> RMUNGBIT INVISIBLE TOUCHBIT SURFACEBIT TRYTAKEBIT
@@ -88,26 +81,28 @@
   <h3>Referencing objects</h3>
 
   <p>When talking about in-game objects, they usually are found on a room, or in the player&rsquo;s inventory if they
-    have been taken. That&rsquo;s what the <code>IN</code> &mdash;or <code>LOC</code>, in older versions of ZIL&mdash; property is
-    for: to indicate in which room the object can be found. The above code sample uses <code>IN</code>, though, to indicate that
-    <code>LOCAL-GLOBALS</code> is &ldquo;inside&rdquo; <code>GLOBAL-OBJECTS</code>. What does that mean?
-  </p>
+    have been taken. That&rsquo;s what the <code>IN</code> &mdash;or <code>LOC</code>, in older versions of ZIL&mdash;
+    property is for: to indicate in which room the object can be found. The above code sample uses <code>IN</code>,
+    though, to indicate that <code>LOCAL-GLOBALS</code> is &ldquo;inside&rdquo; <code>GLOBAL-OBJECTS</code>. What does
+    that mean?</p>
 
   <p><code>GLOBAL-OBJECTS</code> is a container for every object that can be referenced from anywere in the game. The
     sky, for example. Or the ground. Or the player, and parts of the player&rsquo;s body. But what are
     <code>LOCAL-GLOBALS</code>? These are the objects that can be referenced from more than one room. A door connecting
     two rooms, for example. Or a staircase. A better name for <code>LOCAL-GLOBALS</code> would have been
-    <code>SHARED-OBJECTS</code>, in my opinion.</p>
+    <code>SHARED-OBJECTS</code>, in my opinion.
+  </p>
 
-  <p><code>ROOM</code> structures have a <code>GLOBAL</code> property to indicate what objects is the room sharing.</p>
+  <p><code>ROOM</code> structures may have a <code>GLOBAL</code> property to indicate which objects is the room sharing.
+  </p>
 
   <h2>Possible approaches</h2>
 
-  <p>We have seen that ZIL uses mutable state, and different <em>stores</em> for different pieces of the state. Rooms
-    and objects are their
-    own structures. Other state values are stored in their individual atoms. We could just <em>port</em> that code to
-    Clojure, since it is
-    also a Lisp and, therefore, allows creating mutable <em>variables.</em></p>
+  <p>We have seen that ZIL uses mutable state, and an individual atom or structure for each of the different pieces of
+    the state. Rooms and objects are their own structures. Other state values are stored in their individual atoms. We
+    could just <em>port</em> that code to Clojure, since it is also a Lisp and, therefore, allows creating mutable
+    <em>variables.</em>
+  </p>
 
   <p>Keeping the bare basics of the previous code sample, we could do something like this:</p>
 
@@ -118,9 +113,8 @@
 (<code>def</code> rooms <code>(</code>atom <code class="string">{}</code><code>)</code>)</pre>
 
   <p>There, we just created three <em>vars</em> (renaming <code>LOCAL-GLOBALS</code> as <code>shared-objects</code>) and
-    initialized them with
-    a Clojure <code>atom</code>, each containing an empty hashmap. Similarly, we could model the <code>RUG-MOVED</code>
-    flag like this:</p>
+    initialized them with a Clojure <code>atom</code>, each containing an empty hashmap. Similarly, we could model the
+    <code>RUG-MOVED</code> flag like this:</p>
 
   <pre>(<code>def</code> rug-moved? <code>(</code>atom <code>false)</code>)</pre>
 
@@ -182,7 +176,7 @@
 
   <pre>(<code>defn</code> start <code>[]</code>
   <code>(loop</code> <code class="string">[</code>state <code class="string">(</code>initial-state<code class="string">)]
-    (</code><code>let</code> <code class="string">[</code>command <code>(</code>get-player-input<code>)</code><code class="string">]
+    (</code><code>let</code> <code class="string">[</code>command<code> (</code>get-player-input<code>)</code><code class="string">]
       (</code><code>if (</code>= <code class="string">"QUIT"</code> command<code>)
         (</code>println <code class="string">"Bye!"</code><code>)
         (recur</code> <code class="string">(</code>next-state state command<code class="string">)</code><code>)</code><code class="string">))</code><code>)</code>)</pre>
@@ -220,7 +214,48 @@
     <div>
       <h3>TL;DR</h3>
       <ul>
-
+        <li>
+          <strong>Objectives</strong>
+          <ul>
+            <li>Studying how ZIL handles the game&rsquo;s initial state</li>
+            <li>Analyzing different approaches for the Clojure implementation</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Referencing objects</strong>
+          <ul>
+            <li>By default, an object can only be referenced in the room it is located, or from the player inventory.</li>
+            <li>Some objects can be referenced anywhere in the game. These are stored in <code>GLOBAL-OBJECTS</code>.</li>
+            <li>If an object can be referenced from more than one room (for example, a door connecting two rooms), it will
+              be stored in <code>LOCAL-GLOBALS</code>.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Approach 1: Mutable state</strong>
+          <ul>
+            <li>Same design as in ZIL, so transcribing the code would be easy</li>
+            <li>We define a var for each global, room, and object</li>
+            <li>We use <code>atom</code>s, and mutate their values with <code>reset!</code> and <code>swap!</code></li>
+          </ul>
+        </li>
+        <li>
+          <strong>Approach 2: Single store</strong>
+          <ul>
+            <li>We use mutable state, but all of the state values are contained in a single var with an <code>atom</code></li>
+            <li>The state is modelled as a hashmap, with separate keys for different purposes (rooms, objects, player&hellip;)</li>
+            <li>Easier to save/load the game state</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Approach 3: Store-passing style</strong>
+          <ul>
+            <li>State is modelled as in Approach 2</li>
+            <li>State is immutable: the idea is to use <code>loop</code> with the initial state, and <code>recur</code>ring with the next state</li>
+            <li>May require creating temporary namespaces to <code>intern</code> the room and object structures before building the initial state</li>
+            <li>Easy to save/load the game state</li>
+            <li>Functional approach: less side-effects, therefore easier to test</li>
+          </ul>
+        </li>
       </ul>
     </div>
   </aside>
