@@ -36,7 +36,7 @@
     the current player&rsquo;s location. <code>WINNER</code> is the <em>actor;</em> usually, that means the player, but
     it can change if the player is giving orders to someone else, for example. <code>P-IT-OBJECT</code> is the object
     the word &ldquo;it&rdquo; refers to. Imagine the player gets this description: <em>&ldquo;The room you&rsquo;re in
-      has only a closed door.&rdquo;</em> The player could then enter <em>&ldquo;open door&rdquo;,</em> but if we assign
+    has only a closed door.&rdquo;</em> The player could then enter <em>&ldquo;open door&rdquo;,</em> but if we assign
     the door object to <code>P-IT-OBJECT,</code> <em>&ldquo;open it&rdquo;</em> would also work. We will dig deeper into
     this when we work on the parser.</p>
 
@@ -44,7 +44,7 @@
     by the parser when given a valid player input. In this case, it&rsquo;s used programmatically to show the
     description of the starting room.</p>
 
-  <h2>The game loop</h2>
+  <h2 id="loop">The game loop</h2>
 
   <p>Infocom&rsquo;s 1989 <em>Learning ZIL</em> manual, in its Chapter 8, shows a simplified version of the game&rsquo;s
     <code>MAIN-LOOP</code>:
@@ -93,13 +93,10 @@
   <pre><code>&lt;SETG</code> LIT <code>T&gt;</code></pre>
 
   <p>Some objects are given a <code>VTYPE</code> property that marks them as only usable in certain type of rooms. In
-    some Zork
-    titles, there is a comment in the <code>GO</code> routine explaining that the compiler didn't handle it well, but
-    apparently
-    that&rsquo;s only the case if we wanted to assign a flag value to the property. For example, in Zork 2 we can find a
-    <code>BALLOON</code> object with its <code>VTYPE</code> prop set to 0, but then in the <code>GO</code> routine we
-    can find
-    this code:
+    some Zork titles, there is a comment in the <code>GO</code> routine explaining that the compiler didn't handle it
+    well, but apparently that&rsquo;s only the case if we wanted to assign a flag value to the property. For example,
+    in Zork II we can find a <code>BALLOON</code> object with its <code>VTYPE</code> prop set to 0, but then in the
+    <code>GO</code> routine we can find this code:
   </p>
 
   <pre><code class="string">;"clean up junk compiler can't do"</code>
@@ -109,13 +106,10 @@
     <code>BALLOON</code> object.</p>
 
   <p>Tables are actually ordered lists of values, like Clojure vectors. If we want to create a two-dimensional table, we
-    would need to use a
-    <code>TABLE</code> whose elements are also <code>TABLE</code>s. Zork 1, for example, have melee results stored in
-    different tables. Some of
-    these tables have &ldquo;calculated&rdquo; elements, and apparently that&rsquo;s something the compiler can&rsquo;t
-    handle in the definition
-    of the global that contain them. Zork 1, in its <code>1actions.zil</code> file, has this definition:
-  </p>
+    would need to use a <code>TABLE</code> whose elements are also <code>TABLE</code>s. Zork I, for example, have melee
+    results stored in different tables. Some of these tables have &ldquo;calculated&rdquo; elements, and apparently
+    that&rsquo;s something the compiler can&rsquo;t handle in the definition of the global that contain them. Zork I, in
+    its <code>1actions.zil</code> file, has this definition:</p>
 
   <pre>&lt;<code>GLOBAL</code> DEF1-RES
   <code>&lt;TABLE</code> DEF1
@@ -133,8 +127,8 @@
     table has <code>0</code> as its index.</p>
 
   <p>These settings, along with the &ldquo;dungeon&rdquo; map and objects, would be the game&rsquo;s <em>initial
-      state</em>. We will talk more about game
-    state in the next entry.</p>
+      state</em>. We will talk more about game state in the next entry.</p>
+      
   <aside>
     <div>
       <h3>TL;DR</h3>

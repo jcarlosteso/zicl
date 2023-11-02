@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>The Advenjurer &mdash; Overview</title>
+  <link rel="stylesheet" href="/zicl/styles.css" />
+  <script src="/zicl/index.mjs" type="module"></script>
+</head>
+
+<body>
+  <h1>The parser</h1>
+
+  <p>When we first talked about <a href="/zicl/engine/intro#loop">the game loop</a>, we mentioned the
+    <code>PARSER</code> routine briefly, only to say it was the piece that requests the player&rsquo;s
+    input, verifies if its syntax is valid, and sets everything up so the requested action may be executed.
+  </p>
+
+  <p>The parser&rsquo;s code is complex: it spans some 1270 lines of code divided into 55 <code>GLOBAL</code>,
+    49 <code>CONSTANT</code>, and 42 <code>ROUTINE</code> declarations. <code>PARSER</code> itself is around
+    270 lines long, for instance.</p>
+    
+  <p>Much of that code deals with particularities of the Z-machine, which we are not going to emulate. That is
+    why we are going to do is to learn what is this module&rsquo;s job, looking only at the actual code when
+    it is relevant &mdash;that is, skipping all the internal memory handling and I/O intrincacies.</p>
+
+  <h2>From text to actions</h2>
+
+  <p>Every game turn starts with a <code>></code> prompt and a blinking cursor. That&rsquo;s the parser, patiently
+    waiting for the player to enter a command. Eventually, that happens: the text is typed and the Enter key is
+    pressed. We got text, which is stored in an <em>input buffer</em> as a null-terminated string.</p>
+
+  <p>The text is then <em>tokenized:</em> it is split into parts by matching every word against a <em>vocabulary
+    table,</em> which not only determines whether a &ldquo;word&rdquo; is valid, but also which kind of word it is.</p>
+    
+  <p>Michael Ko, in <a href="https://ifsecrets.blogspot.com" target="_blank" referrerpolicy="no-referrer">Internal
+    Secrets of Infocom Games</a>, tells us that the expected structure of a single command is this:</p>
+
+  <p class="boxed"><code>&lt;verb&gt; &lt;preposition&gt; &lt;noun clause&gt; &lt;preposition&gt; &lt;noun clause&gt; &lt;end-of-command&gt;</code></p>
+
+  <p>Only the verb is mandatory, and there must be just one verb per command. Using the verb token, the parser will
+    check every syntax definition using that same verb to see if the tokens match any of them. This means a single
+    verb may match different syntaxes, each of them with an associated <em>verb routine.</em></p>
+
+  <p>A verb routine, also known as a <em>default handler</em>, is a ZIL function that executes the requested action.
+    That always include using, directly or indirectly, <code>TELL</code> to give feedback to the player about the
+    outcome of the requested command.</p>
+
+  <p>So, in summary: a command has a verb, a verb can match many syntaxes, every syntax has a verb routine (but a
+    verb routine can be used by many syntaxes), and the verb routine executes the action. In a nutshell, that&rsquo;s
+    the parser&rsquo;s job.</p>
+  
+  <h2>Special Cases</h2>
+
+  <p>The functionality described in the previous section is the bare basics of a parser routine. ZIL games have a
+    sophisticated parser that allows for flexibility when typing commands. These are the most relevant tasks the
+    parser is able to do.</p>
+  
+  <h3>Directions</h3>
+
+  <p>There&rsquo;s an exception to the <em>one-and-only-one-verb-per-command</em> rule: the player can ommit the verb
+    when telling the game where to go. For instance, <em>&ldquo;north&rdquo;</em> (or simply <em>&ldquo;n&rdquo;</em>)
+    would be a valid input. In these cases, the parser assumes the ommited verb is <code>WALK</code>, and sets the
+    requested direction as its direct object.</p>
+
+  <p>In a future entry, we will see how to define directions and abbreviations for them.</p>
+
+  <h3>Qualifiers</h3>
+
+  <p>One of the strengths of the syntax definitions in ZIL is that it allows the game designer to impose conditions
+    to the objects that can be used in a particular command (like, for example, <em>&ldquo;it must be in the
+    player&rsquo;s inventory&rdquo;</em>), if the command allows only one object to be used (by default) or can
+    affect many of them, and if the requested action has an implicit <code>TAKE</code> action to be taken into effect.</p>
+
+  <p>We will see more about this when we discuss how to define syntaxes.</p>
+  
+  <h3>GWIM (Get What I Mean)</h3>
+
+  <p>One of the most interesting features of the ZIL parser is that it can deduct ommited noun clauses, based on
+    syntax definitions and the current game state. For example, if the player enters the command <em>&ldquo;open&rdquo;,</em>
+    and only one object in the room can be opened, the syntax may allow to ommit the name of that object in the command
+    and, therefore, would consider the input as a valid one.</p>
+
+  <p>This is something we will talk about when we see how to define syntaxes.</p>
+
+  <h3>&ldquo;Orphaning&rdquo;</h3>
+
+  <p>Related to the previous feature, <em>orphaning</em> is what happens when the player types a command ommiting something
+    that the parser cannot infer using GWIM. In these cases, the parser keeps the partial command, gives feedback to the
+    player, and assumes the next input will be the missing part.</p>
+
+  <p>For example, imagine the player enters a room with a fireplace that is not lit. In the same room there&rsquo;s a burning
+    wall torch and a lit oil lamp. The player wants to light the fireplace, so types <em>&ldquo;ignite the fireplace&rdquo;.</em>
+    The parser will try to guess what the player will use to light the fire, but since there are two candidates in the room,
+    it will <code>TELL</code> something like <em>&ldquo;What do you want to ignite the fireplace with?&rdquo;</em>, and show
+    the prompt so the user can type an answer. If the player then types <em>&ldquo;with the lamp&rdquo;,</em> the parser will
+    use that as the missing indirect object on the previous command.</p>
+
+  <p>In case there&rsquo;s no candidate, the parser will ask anyway, but of course any answer the player may give will result in
+    an answer like <em>&ldquo;there&rsquo;s no such thing here&rdquo;.</em></p>
+
+  <aside>
+    <div>
+      <h3>TL;DR</h3>
+      <ul>
+        <li>
+          <strong>Objectives</strong>
+          <ul>
+            <li>Understanding what&rsquo;s the main job of the parser</li>
+            <li>Getting to know some of its advanced features</li>
+          </ul>
+        </li>
+        <li>
+          <strong>The basics</strong>
+          <ul>
+            <li>The player&rsquo;s input is split into <em>tokens</em>, using a
+              <em>vocabulary table</em> to identify what is the role for every
+              entered word</li>
+            <li>The structure of a command is verb + preposition + noun clause +
+              preposition + noun clause + end-of-command</li>
+            <li>Only the verb token is mandatory, and a command can only have one</li>
+            <li>Tokenized input is matched against <em>syntax definitions</em> that
+              include the same verb token</li>
+            <li>Every syntax definition has an associated <em>verb routine,</em> but
+              many syntax definitions can share the same verb routine</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Advanced features</strong>
+          <ul>
+            <li>The verb token can be ommited if the command is just a direction</li>
+            <li>Syntax definitions can restrict which objects are accepted, allow many
+              objects to be affected by the command, and do an implicit <code>TAKE</code>
+              action before the requested action is done</li>
+            <li>Syntax definitions can try to infer an ommited object based on certain
+                criteria; this is known as GWIM or <em>Get What I Mean</em></li>
+            <li><em>Orphaning</em> is a parser feature that allows the player to complete
+              partial commands when GWIM cannot infer an ommited object, by asking the
+              player to provide the ommited object and appending it to the incomplete
+              command previously entered</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </aside>
+</body>
+
+</html>
